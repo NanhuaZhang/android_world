@@ -21,7 +21,6 @@ from android_world.task_evals.utils import sqlite_schema_utils
 from android_world.task_evals.utils import sqlite_utils
 from android_world.utils import datetime_utils
 
-˚
 DB_PATH = '/data/data/com.simplemobiletools.calendar.pro/databases/events.db'
 EVENTS_TABLE = 'events'  # Table in events.db.
 DB_KEY = 'id'
