@@ -27,5 +27,5 @@ poetry.lock
 /task_histories
 
 *.zip
-
+*.xml
 cost_token
