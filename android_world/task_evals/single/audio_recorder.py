@@ -89,7 +89,7 @@ class AudioRecorderRecordAudioWithFileName(_AudioRecorder):
   schema = file_validators.CreateFile.schema
   template = (
       'Record an audio clip and save it with name "{file_name}" using Audio'
-      " Recorder app."
+      " Recorder app. When saving, delete the existing old file name with the Delete key, and then enter a new name."
   )
 
   def __init__(self, params: dict[str, Any]):

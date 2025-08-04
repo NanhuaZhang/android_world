@@ -34,6 +34,7 @@ from android_world import registry
 from android_world.agents import infer, m3a_utils
 from android_world.agents import t3a
 from android_world.agents import doubao_agent
+from android_world.agents.doubao_agent import Doubao
 from android_world.env import env_launcher
 from android_world.task_evals import task_eval
 import xml.etree.ElementTree as ET
@@ -109,7 +110,9 @@ def _main() -> None:
   params = task_type.generate_random_params()
   task = task_type(params)
   task.initialize_task(env)
-  agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
+  # agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
+  # agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
+  agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
 
   print('Goal: ' + str(task.goal))
   is_done = False
@@ -121,7 +124,7 @@ def _main() -> None:
   agent_successful = is_done and task.is_successful(env) == 1
 
   # 任务跑完后，保存执行历史
-  save_task_history(agent, task.name,task.goal)
+  save_task_history(agent, task.name,task.goal,agent_successful)
 
   print(
       f'{"Task Successful ✅" if agent_successful else "Task Failed ❌"};'
@@ -142,7 +145,7 @@ def ui_elements_to_xml(ui_elements: list, filename: str):
     tree = ET.ElementTree(root)
     tree.write(filename, encoding="utf-8", xml_declaration=True)
 
-def save_task_history(agent, task_id: str, task_goal:str,output_dir: str = "./task_histories"):
+def save_task_history(agent, task_id: str, task_goal:str,success:bool,output_dir: str = "./task_histories"):
     """
     将 agent.history 中每一步的 action、reason、summary 及截图
     编码为 base64，输出到 JSON 文件。
@@ -186,7 +189,7 @@ def save_task_history(agent, task_id: str, task_goal:str,output_dir: str = "./ta
             }
         }
         if step.get("action") == "status":
-            if step.get("status") == "complete":
+            if success:
                 export['trajectory_type'] = 0
 
 
