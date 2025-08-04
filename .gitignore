@@ -25,6 +25,7 @@ poetry.lock
 .idea
 
 /task_histories
+/android_world/task_evals/information_retrieval/proto/*.py
 
 *.zip
 *.xml

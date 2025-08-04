@@ -424,6 +424,7 @@ Action: {{"action_type": "status", "goal_status": "infeasible"}}"""
             logical_screen_size,
             adb_utils.get_physical_frame_boundary(self.env.controller),
             adb_utils.get_orientation(self.env.controller),
+            click_point,
         )
 
     if converted_action.action_type == 'open_app':

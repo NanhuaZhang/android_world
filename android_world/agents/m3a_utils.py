@@ -146,6 +146,7 @@ def add_ui_element_mark(
     logical_screen_size: tuple[int, int],
     physical_frame_boundary: tuple[int, int, int, int],
     orientation: int,
+    click_point: tuple[int, int] | None = None,
 ):
   """Add mark (a bounding box plus index) for a UI element in the screenshot.
 
@@ -193,27 +194,47 @@ def add_ui_element_mark(
         color=(0, 255, 0),
         thickness=int(2 * iso_scale),
     )
-    screenshot[
-        upper_left_physical[1]
-        + int(1 * y_scale) : upper_left_physical[1]
-        + int(25 * y_scale),
-        upper_left_physical[0]
-        + int(1 * x_scale) : upper_left_physical[0]
-        + int(35 * x_scale),
-        :,
-    ] = (255, 255, 255)
-    cv2.putText(
-        screenshot,
-        str(index),
-        (
-            upper_left_physical[0] + int(1 * x_scale),
-            upper_left_physical[1] + int(20 * y_scale),
-        ),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.7 * iso_scale,
-        (0, 0, 0),
-        thickness=int(2 * iso_scale),
-    )
+
+    # Draw the click point if provided
+    if click_point is not None:
+      print('click_point>>>>>>', click_point)
+      # Scale the click point to physical coordinates
+      click_point_physical = (
+          int(click_point[0] * x_scale),
+          int(click_point[1] * y_scale)
+      )
+      # Draw a red dot at the click point
+      cv2.circle(
+          screenshot,
+          click_point_physical,
+          radius=int(10 * x_scale),  # Radius of the dot
+          color=(255, 0, 0),  # Red color for the dot
+          thickness=-1  # Fill the circle
+      )
+
+    # element index
+    # screenshot[
+    #     upper_left_physical[1]
+    #     + int(1 * y_scale) : upper_left_physical[1]
+    #     + int(25 * y_scale),
+    #     upper_left_physical[0]
+    #     + int(1 * x_scale) : upper_left_physical[0]
+    #     + int(35 * x_scale),
+    #     :,
+    # ] = (255, 255, 255)
+
+    # cv2.putText(
+    #     screenshot,
+    #     str(index),
+    #     (
+    #         upper_left_physical[0] + int(1 * x_scale),
+    #         upper_left_physical[1] + int(20 * y_scale),
+    #     ),
+    #     cv2.FONT_HERSHEY_SIMPLEX,
+    #     0.7 * iso_scale,
+    #     (0, 0, 0),
+    #     thickness=int(2 * iso_scale),
+    # )
 
 
 def add_screenshot_label(screenshot: np.ndarray, label: str):
