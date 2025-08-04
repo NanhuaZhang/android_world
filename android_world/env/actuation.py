@@ -223,7 +223,7 @@ def execute_adb_action(
       raise ValueError('No app name provided')
 
   elif action.action_type == 'wait':
-    time.sleep(1.0)
+    time.sleep(5.0)
 
   elif action.action_type == 'launch_adb_activity':
     if action.activity_nickname == 'app_drawer':
