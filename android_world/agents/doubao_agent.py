@@ -429,17 +429,6 @@ Action: {{"action_type": "status", "goal_status": "infeasible"}}"""
     if converted_action.action_type == 'open_app':
         step_data['app_name'] = converted_action.app_name
 
-    if converted_action.action_type == 'scroll':
-        if converted_action.index is not None and converted_action.index <= len(
-                ui_elements
-        ):
-            target_element = ui_elements[converted_action.index]
-            center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
-            click_point = (center_x, center_y)
-
-            # 记录点击前坐标
-            step_data['start_coords'] = click_point
-
     if converted_action.action_type == 'status':
       if converted_action.goal_status == 'infeasible':
         print('Agent stopped since it thinks mission impossible.')
@@ -455,7 +444,22 @@ Action: {{"action_type": "status", "goal_status": "infeasible"}}"""
       print('Agent answered with: ' + converted_action.text)
 
     try:
-      self.env.execute_action(converted_action)
+      result = self.env.execute_action(converted_action)
+      if converted_action.action_type == 'scroll':
+          step_data['start_coords'] = (result[0],result[1])
+          step_data['end_coords'] = (result[2],result[3])
+
+      if converted_action.action_type == 'input_text':
+          click_step = result
+          click_step['action_output'] = step_data['action_output']
+          before_screenshot = step_data['before_screenshot']
+          step_data['before_screenshot'] = click_step['before_screenshot']
+
+          click_step['before_screenshot'] =before_screenshot
+          click_step['before_screenshot_mark'] = step_data['before_screenshot_mark']
+          step_data['action_output'] = f'Reason: Input {converted_action.text}\n Action:xxx'
+          self.history.append(click_step)
+
     except Exception as e:  # pylint: disable=broad-exception-caught
       print(
           'Some error happened executing the action ',
@@ -484,17 +488,6 @@ Action: {{"action_type": "status", "goal_status": "infeasible"}}"""
     # Save screenshot only for result visualization.
     step_data['after_screenshot'] = state.pixels.copy()
     step_data['after_element_list'] = ui_elements
-
-    if converted_action.action_type == 'scroll':
-        if converted_action.index is not None and converted_action.index <= len(
-                ui_elements
-        ):
-            target_element = ui_elements[converted_action.index]
-            center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
-            click_point = (center_x, center_y)
-
-            # 记录点击前坐标
-            step_data['end_coords'] = click_point
 
     summary_prompt = _summarize_prompt(
         goal,

@@ -117,6 +117,8 @@ class JSONAction:
   def __post_init__(self):
     if self.action_type not in _ACTION_TYPES:
       raise ValueError(f'Invalid action type: {self.action_type}')
+    if self.index == '':
+        self.index = 0
     if self.index is not None:
       self.index = int(self.index)
       if self.x is not None or self.y is not None:

@@ -19,10 +19,13 @@ import logging
 import time
 from typing import Any
 from android_env import env_interface
+from numpy import ndarray
+
 from android_world.env import adb_utils
 from android_world.env import android_world_controller
 from android_world.env import json_action
 from android_world.env import representation_utils
+from android_world.env.representation_utils import UIElement
 
 
 def execute_adb_action(
@@ -30,7 +33,8 @@ def execute_adb_action(
     screen_elements: list[Any],  # list[UIElement]
     screen_size: tuple[int, int],
     env: env_interface.AndroidEnvInterface,
-) -> None:
+    status: any
+) -> dict[str, str | ndarray | list[UIElement] | tuple[float, float]] | None:
   """Execute an action based on a JSONAction object.
 
   Args:
@@ -74,14 +78,33 @@ def execute_adb_action(
   elif action.action_type == 'input_text':
     text = action.text
     if text:
+      step_data = {}
+
       if action.index is not None or (
           action.x is not None and action.y is not None
       ):
         # First focus on enter text UI element.
         click_action = copy.deepcopy(action)
         click_action.action_type = 'click'
-        execute_adb_action(click_action, screen_elements, screen_size, env)
+        execute_adb_action(click_action, screen_elements, screen_size, env, status)
         time.sleep(1.0)
+
+
+
+        state = status.get_state(wait_to_stabilize=False)
+        step_data['action'] = 'click'
+        # step_data['action_output'] = click_action
+        step_data['before_screenshot'] = state.pixels.copy()
+        step_data['before_element_list'] = state.ui_elements
+        target_element = state.ui_elements[action.index]
+        center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
+        click_point = (center_x, center_y)
+        step_data['start_coords']= click_point
+        step_data['end_coords']= click_point
+        step_data['summary'] = 'click the text box'
+        step_data['prompt_tokens'] = 0
+        step_data['completion_tokens'] = 0
+
 
       if action.clear_text:
         # Select all existing text and delete it.
@@ -103,6 +126,7 @@ def execute_adb_action(
 
       adb_utils.type_text(text, env, timeout_sec=10)
       adb_utils.press_enter_button(env)
+      return step_data
     else:
       logging.warning(
           'Input_text action indicated, but no text provided. No '
@@ -138,6 +162,7 @@ def execute_adb_action(
   elif action.action_type == 'scroll':
 
     screen_width, screen_height = screen_size
+    print(action.index)
     if action.index:
       x_min, y_min, x_max, y_max = (
           max(screen_elements[action.index].bbox_pixels.x_min, 0),
@@ -165,7 +190,7 @@ def execute_adb_action(
         int(start_x), int(start_y), int(end_x), int(end_y)
     )
     adb_utils.issue_generic_request(command, env)
-
+    return [int(start_x), int(start_y), int(end_x), int(end_y)]
   elif action.action_type == 'swipe':  # Inverse of scroll.
     screen_width, screen_height = screen_size
     mid_x, mid_y = 0.5 * screen_width, 0.5 * screen_height
