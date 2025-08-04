@@ -268,26 +268,28 @@ def save_task_history(agent, task_id: str, task_goal:str,success:bool,output_dir
         for key in ("before_screenshot",'before_screenshot_mark'):
             img_array = step.get(key)
             if img_array is not None:
-                filename = f"{key}_{idx}.png"  # e.g. before_screenshot_1.png
+                filename = f"{idx}.png"  # e.g. before_screenshot_1.png
+                if key == "before_screenshot_mark":
+                    filename = f"{idx}-label.png"
                 file_path = os.path.join(task_dir, filename)
                 # 将 ndarray 转为 PIL 并保存
                 Image.fromarray(img_array.astype("uint8")).save(file_path)
                 if key == "before_screenshot_mark":
-                    rec['observation_mark'] = f"./{filename}"
+                    rec['observation_mark'] = filename
                 else:
-                    rec['observation'] = f"./{filename}"
+                    rec['observation'] = filename
         trajectory.append(rec)
 
         # 保存页面结构 XML
         for key in ("before_element_list",''):
             elements = step.get(key)
             if elements is not None:
-                filename = f"{key}_{idx}.xml"
+                filename = f"{idx}.xml"
                 file_path = os.path.join(task_dir, filename)
                 ui_elements_to_xml(elements, file_path)
-                rec['xml'] = f"./{filename}"
+                rec['xml'] = filename
 
-    out_path = os.path.join(task_dir, f"{task_id}_history.json")
+    out_path = os.path.join(task_dir, "task.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(export, f, ensure_ascii=False, indent=2)
     print(f"✅ Task history saved to {out_path}")
