@@ -191,13 +191,12 @@ def add_ui_element_mark(
         screenshot,
         upper_left_physical,
         lower_right_physical,
-        color=(0, 255, 0),
+        color=(255, 0, 0),
         thickness=int(2 * iso_scale),
     )
 
     # Draw the click point if provided
     if click_point is not None:
-      print('click_point>>>>>>', click_point)
       # Scale the click point to physical coordinates
       click_point_physical = (
           int(click_point[0] * x_scale),
