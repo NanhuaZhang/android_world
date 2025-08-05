@@ -241,7 +241,7 @@ def _main() -> None:
 
         if task_value == 'ContactsNewContactDraft':
             result = extract_contact_details(row['instruction'])
-            if name is not None and number is not None:
+            if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
                 print(f"Name: {result}")
                 params = {
                     "first": result['first_name'],
