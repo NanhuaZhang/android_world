@@ -43,6 +43,7 @@ import xml.etree.ElementTree as ET
 import subprocess
 
 from android_world.task_evals.single.calendar.calendar import generate_noise_events
+from android_world.task_evals.single.vlc import generate_file_name
 from android_world.task_evals.utils import user_data_generation
 
 logging.set_verbosity(logging.WARNING)
@@ -192,6 +193,17 @@ def extract_file_delete(instruction):
     else:
         return None, None
 
+def extract_vlc_playlist_create(instruction):
+    # 提取播放列表名称
+    playlist_name_match = re.search(r'Create a playlist titled "([^"]+)"', instruction)
+    playlist_name = playlist_name_match.group(1) if playlist_name_match else None
+
+    # 提取文件列表
+    files_match = re.search(r'in order: (.+)', instruction)
+    files = files_match.group(1).split(', ') if files_match else []
+
+    return playlist_name, files
+
 def read_csv():
     # 读取 CSV 文件
     df = pd.read_csv('output.csv')  # 替换为你的文件
@@ -285,6 +297,16 @@ def _main() -> None:
                     "file_name": file_name,
                     "subfolder": subfolder,
                     "noise_candidates": noise_candidates,
+                }
+
+        if task_value == 'VlcCreatePlaylist':
+            playlist_name, files = extract_vlc_playlist_create(row['instruction'])
+            if playlist_name is not None and files:
+                print(f"Playlist Name: {playlist_name}, Files: {files}")
+                params = {
+                    'playlist_name': playlist_name,
+                    'files': files,
+                    'noise_files': [generate_file_name() for _ in range(len(files))]
                 }
 
         if params is None:
