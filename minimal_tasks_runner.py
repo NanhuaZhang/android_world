@@ -205,6 +205,7 @@ def _main() -> None:
             raise ValueError('Task {} not found in registry.'.format(task_value))
         task_type: Type[task_eval.TaskEval] = aw_registry[task_value]
         params = None
+        env.reset(go_home=True)
 
         if task_value == 'ContactsAddContact':
             name, number = extract_name_and_number(row['instruction'])
@@ -255,14 +256,14 @@ def _main() -> None:
                     'number': number
                 }
 
-        if task_value == 'SimpleSmsSend':
-            number, message = extract_sms_info(row['instruction'])
-            if message is not None and number is not None:
-                print(f"message: {message}, Number: {number}")
-                params = {
-                    'message': message,
-                    'number': number
-                }
+        # if task_value == 'SimpleSmsSend':
+        #     number, message = extract_sms_info(row['instruction'])
+        #     if message is not None and number is not None:
+        #         print(f"message: {message}, Number: {number}")
+        #         params = {
+        #             'message': message,
+        #             'number': number
+        #         }
 
         if params is None:
             continue

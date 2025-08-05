@@ -456,8 +456,10 @@ Action: {{"action_type": "status", "goal_status": "infeasible"}}"""
           before_screenshot = step_data['before_screenshot']
           step_data['before_screenshot'] = click_step['before_screenshot']
 
-          click_step['before_screenshot'] =before_screenshot
+          click_step['before_screenshot'] = before_screenshot
           click_step['before_screenshot_mark'] = step_data['before_screenshot_mark']
+
+          step_data['before_screenshot_mark'] = step_data['before_screenshot']
           step_data['action_output'] = f'Reason: Input {converted_action.text}\n Action:xxx'
           self.history.append(click_step)
 
