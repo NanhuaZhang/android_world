@@ -43,6 +43,7 @@ import xml.etree.ElementTree as ET
 import subprocess
 
 from android_world.task_evals.single.calendar.calendar import generate_noise_events
+from android_world.task_evals.utils import user_data_generation
 
 logging.set_verbosity(logging.WARNING)
 
@@ -180,6 +181,16 @@ def extract_calendar_event_info(instruction):
 
     return int(year), int(month), int(day), int(hour), title, description, duration
 
+def extract_file_delete(instruction):
+    pattern = r"Delete the file ([\w.]+\.mp3).*?located in the (\w+) folder"
+    match = re.search(pattern, instruction)
+
+    if match:
+        filename = match.group(1)  # 输出: final_smart_lion.mp3
+        folder_name = match.group(2)  # 输出: Notifications
+        return filename, folder_name
+    else:
+        return None, None
 
 def read_csv():
     # 读取 CSV 文件
@@ -264,6 +275,17 @@ def _main() -> None:
         #             'message': message,
         #             'number': number
         #         }
+
+        if task_value == 'FilesDeleteFile':
+            file_name, subfolder = extract_file_delete(row['instruction'])
+            if file_name is not None and subfolder is not None:
+                print(f"file_name: {file_name}, subfolder: {subfolder}")
+                noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[subfolder]
+                params = {
+                    "file_name": file_name,
+                    "subfolder": subfolder,
+                    "noise_candidates": noise_candidates,
+                }
 
         if params is None:
             continue
