@@ -19,6 +19,7 @@ of the run.py module. A task can be specified, otherwise a random task is
 selected.
 """
 import base64
+import dataclasses
 import io
 import json
 from collections.abc import Sequence
@@ -42,7 +43,8 @@ from android_world.task_evals import task_eval
 import xml.etree.ElementTree as ET
 import subprocess
 
-from android_world.task_evals.single.calendar.calendar import generate_noise_events
+from android_world.task_evals.single.calendar import calendar_utils
+from android_world.task_evals.single.calendar.calendar import generate_noise_events, _REPEAT_INTERVALS
 from android_world.task_evals.utils import sqlite_schema_utils
 from android_world.utils.datetime_utils import create_random_october_2023_unix_ts, _create_unix_ts
 from android_world.task_evals.single.vlc import generate_file_name
@@ -187,6 +189,30 @@ def extract_calendar_event_info(instruction):
     duration = int(duration_match.group(1)) if duration_match else None
 
     return int(year), int(month), int(day), int(hour), title, description, duration
+
+
+def extract_repeat_event_info(text: str):
+    # 提取标题
+    title_match = re.search(r"titled\s+'([^']+)'", text)
+    title = title_match.group(1) if title_match else ""
+
+    # 提取时间
+    date_time_match = re.search(r"starting on (\d{4})-(\d{1,2})-(\d{1,2}) at (\d{1,2})h", text)
+    year, month, day, hour = map(int, date_time_match.groups()) if date_time_match else (0, 0, 0, 0)
+
+    # 提取重复频率
+    recurrence_match = re.search(r"recurs\s+(daily|weekly)", text, re.IGNORECASE)
+    recurrence = recurrence_match.group(1).lower() if recurrence_match else ""
+
+    # 提取时长
+    duration_match = re.search(r"lasts for (\d+)\s*minutes?", text)
+    duration = int(duration_match.group(1)) if duration_match else 0
+
+    # 提取描述
+    desc_match = re.search(r"description should be\s+'([^']+)'", text)
+    description = desc_match.group(1) if desc_match else ""
+
+    return title, year, month, day, hour, recurrence, duration, description
 
 def extract_event_info(text):
     # 提取时间（小时）
@@ -384,16 +410,16 @@ def _main() -> None:
                         [event], n_noise_events
                     ),
                 }
-        if task_value == 'ContactsNewContactDraft':
-            result = extract_contact_details(row['instruction'])
-            if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
-                print(f"Name: {result}")
-                params = {
-                    "first": result['first_name'],
-                    "last": result['last_name'],
-                    "phone": result['phone'],
-                    "phone_label": result['phone_label'],
-                }
+        # if task_value == 'ContactsNewContactDraft':
+        #     result = extract_contact_details(row['instruction'])
+        #     if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
+        #         print(f"Name: {result}")
+        #         params = {
+        #             "first": result['first_name'],
+        #             "last": result['last_name'],
+        #             "phone": result['phone'],
+        #             "phone_label": result['phone_label'],
+        #         }
 
         if task_value == 'SimpleCalendarAddOneEventInTwoWeeks':
             hour, title, description, duration = extract_event_info(row['instruction'])
@@ -452,6 +478,47 @@ def _main() -> None:
                     ),
                 }
 
+        if task_value == 'SimpleCalendarAddRepeatingEvent':
+            title, year, month, day, hour, recurrence, duration, description = extract_repeat_event_info(row['instruction'])
+            if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None and recurrence is not None:
+                print(f"year: {year}, month: {month}")
+
+                start_ts = _create_unix_ts(day=day, hour=hour)
+                end_ts = start_ts + duration * 60
+                template = sqlite_schema_utils.CalendarEvent(
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    title=title,
+                    description=description
+                )
+                if recurrence == "weekly":
+                    repeat_rule = calendar_utils.generate_simple_calendar_weekly_repeat_rule(
+                        template.start_datetime.isoweekday()
+                    )
+                else:
+                    repeat_rule = 0
+
+                event = dataclasses.replace(
+                    template,
+                    repeat_interval=_REPEAT_INTERVALS[recurrence],
+                    repeat_rule=repeat_rule,
+                )
+
+                n_noise_events = random.randint(0, 20)
+                params = {
+                    "year": year,
+                    'month': month,
+                    "day": day,
+                    'hour': hour,
+                    'duration_mins': duration,
+                    'event_title': title,
+                    'event_description': description,
+                    'row_objects': [event],
+                    'noise_row_objects': generate_noise_events(
+                        [event], n_noise_events
+                    ),
+                }
+
 
         # if task_value == 'SimpleSmsReply':
         #     number, message = extract_sms_reply(row['instruction'])
@@ -471,68 +538,68 @@ def _main() -> None:
         #             'number': number
         #         }
 
-        if task_value == 'FilesDeleteFile':
-            file_name, subfolder = extract_file_delete(row['instruction'])
-            if file_name is not None and subfolder is not None:
-                print(f"file_name: {file_name}, subfolder: {subfolder}")
-                noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[subfolder]
-                params = {
-                    "file_name": file_name,
-                    "subfolder": subfolder,
-                    "noise_candidates": noise_candidates,
-                }
+        # if task_value == 'FilesDeleteFile':
+        #     file_name, subfolder = extract_file_delete(row['instruction'])
+        #     if file_name is not None and subfolder is not None:
+        #         print(f"file_name: {file_name}, subfolder: {subfolder}")
+        #         noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[subfolder]
+        #         params = {
+        #             "file_name": file_name,
+        #             "subfolder": subfolder,
+        #             "noise_candidates": noise_candidates,
+        #         }
         
-        if task_value == 'FilesMoveFile':
-            file_name, source_folder, destination_folder = extract_file_move(row['instruction'])
-            if file_name is not None and source_folder is not None and destination_folder is not None:
-                print(f"file_name: {file_name}, source_folder: {source_folder}, destination_folder: {destination_folder}")
-                noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[source_folder]
-                params = {
-                    "file_name": file_name,
-                    "source_folder": source_folder,
-                    "destination_folder": destination_folder,
-                    "noise_candidates": noise_candidates,
-                }
+        # if task_value == 'FilesMoveFile':
+        #     file_name, source_folder, destination_folder = extract_file_move(row['instruction'])
+        #     if file_name is not None and source_folder is not None and destination_folder is not None:
+        #         print(f"file_name: {file_name}, source_folder: {source_folder}, destination_folder: {destination_folder}")
+        #         noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[source_folder]
+        #         params = {
+        #             "file_name": file_name,
+        #             "source_folder": source_folder,
+        #             "destination_folder": destination_folder,
+        #             "noise_candidates": noise_candidates,
+        #         }
 
-        if task_value == 'VlcCreatePlaylist':
-            playlist_name, files = extract_vlc_playlist_create(row['instruction'])
-            if playlist_name is not None and files:
-                print(f"Playlist Name: {playlist_name}, Files: {files}")
-                params = {
-                    'playlist_name': playlist_name,
-                    'files': files,
-                    'noise_files': [generate_file_name() for _ in range(len(files))]
-                }
+        # if task_value == 'VlcCreatePlaylist':
+        #     playlist_name, files = extract_vlc_playlist_create(row['instruction'])
+        #     if playlist_name is not None and files:
+        #         print(f"Playlist Name: {playlist_name}, Files: {files}")
+        #         params = {
+        #             'playlist_name': playlist_name,
+        #             'files': files,
+        #             'noise_files': [generate_file_name() for _ in range(len(files))]
+        #         }
         
-        if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
-            results = extract_expense_add_multiple(row['instruction'])
-            if len(results) > 0:
-                target_rows = []
-                for result in results:
-                    if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
-                        expense_unix_time_s = _get_random_timestamp()
-                        expense_unix_time_ms = expense_unix_time_s * 1000
-                        print(f'result >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {result}')
-                        category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
-                        target_rows.append(sqlite_schema_utils.Expense(
-                            result['name'],
-                            int(float(result['amount'])*100),
-                            category_id,
-                            result['note'],
-                            expense_unix_time_ms,
-                            expense_unix_time_ms,
-                        ))
-                        noise_rows = sqlite_schema_utils.get_random_items(
-                            10,
-                            _generate_expense,
-                            replacement=False,
-                            filter_fn=lambda r: all(r.name != t.name for t in target_rows),
-                        )
-                params = {
-                    sqlite_validators.ROW_OBJECTS: target_rows,
-                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-                    'text_representation_type': random.choice(['csv', 'text_block']),
-                }
+        # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
+        #     results = extract_expense_add_multiple(row['instruction'])
+        #     if len(results) > 0:
+        #         target_rows = []
+        #         for result in results:
+        #             if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
+        #                 expense_unix_time_s = _get_random_timestamp()
+        #                 expense_unix_time_ms = expense_unix_time_s * 1000
+        #                 print(f'result >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {result}')
+        #                 category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
+        #                 target_rows.append(sqlite_schema_utils.Expense(
+        #                     result['name'],
+        #                     int(float(result['amount'])*100),
+        #                     category_id,
+        #                     result['note'],
+        #                     expense_unix_time_ms,
+        #                     expense_unix_time_ms,
+        #                 ))
+        #                 noise_rows = sqlite_schema_utils.get_random_items(
+        #                     10,
+        #                     _generate_expense,
+        #                     replacement=False,
+        #                     filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+        #                 )
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: target_rows,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+        #             'text_representation_type': random.choice(['csv', 'text_block']),
+        #         }
 
         if params is None:
             continue
