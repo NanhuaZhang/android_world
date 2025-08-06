@@ -296,9 +296,9 @@ def extract_vlc_playlist_create(instruction):
 
 def extract_expense_add_multiple(instruction):
     # 定义正则表达式
-    pattern_a = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$(\d+\.\d{2})\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
-    pattern_b = r'(.+?)\|(\$?\d+\.\d{2})\|(.+?)\|(.+)'
-    pattern_c = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$(\d+\.\d{2})\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
+    pattern_a = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$?(\d+(?:\.\d+)?)\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
+    pattern_b = r'(.+?)\|(\$?\d+(?:\.\d+)?)\|(.+?)\|(.+)'
+    pattern_c = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$?(\d+(?:\.\d+)?)\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
 
     results = []
 
@@ -334,7 +334,6 @@ def extract_expense_add_multiple(instruction):
                         'category': category.strip(),
                         'note': note.strip()
                     })
-    
     return results
 
 def read_csv():
