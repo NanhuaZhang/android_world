@@ -37,12 +37,14 @@ from android_world.agents import infer, m3a_utils
 from android_world.agents import t3a
 from android_world.agents import doubao_agent
 from android_world.agents.doubao_agent import Doubao
-from android_world.env import env_launcher
+from android_world.env import env_launcher, device_constants
 from android_world.task_evals import task_eval
 import xml.etree.ElementTree as ET
 import subprocess
 
 from android_world.task_evals.single.calendar.calendar import generate_noise_events
+from android_world.task_evals.utils import sqlite_schema_utils
+from android_world.utils.datetime_utils import create_random_october_2023_unix_ts, _create_unix_ts
 
 logging.set_verbosity(logging.WARNING)
 
@@ -180,6 +182,52 @@ def extract_calendar_event_info(instruction):
 
     return int(year), int(month), int(day), int(hour), title, description, duration
 
+def extract_event_info(text):
+    # 提取时间（小时）
+    time_match = re.search(r'(\d{1,2})\s*(?:h|:00)', text)
+    hour = int(time_match.group(1)) if time_match else None
+
+    # 提取标题（单引号或双引号包裹）
+    title_match = re.search(r"(?:title\s+['\"])(.*?)(?:['\"])", text, re.IGNORECASE)
+    title = title_match.group(1) if title_match else None
+
+    # 提取描述（description后跟引号包裹的内容）
+    description_match = re.search(r"(?:description\s+['\"])(.*?)(?:['\"])", text, re.IGNORECASE)
+    description = description_match.group(1) if description_match else None
+
+    # 提取持续时间（分钟）
+    duration_match = re.search(r'(\d+)\s*min', text, re.IGNORECASE)
+    duration = int(duration_match.group(1)) if duration_match else None
+
+    return hour, title, description, duration
+
+
+def extract_event_details(text):
+    weekday_match = re.search(r'\b(on|for)?\s*(this\s+)?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b', text, re.IGNORECASE)
+    hour_match = re.search(r'\b(?:at\s+)?(\d{1,2})h\b', text)
+    title_match = re.search(r"title\s+'([^']+)'", text)
+    description_match = re.search(r"description\s+'([^']+)'", text)
+    duration_match = re.search(r'last(?:s)? for (\d+) mins', text)
+
+    weekday = weekday_match.group(3).capitalize() if weekday_match else None
+    hour = int(hour_match.group(1)) if hour_match else None
+    title = title_match.group(1) if title_match else None
+    description = description_match.group(1) if description_match else None
+    duration = int(duration_match.group(1)) if duration_match else None
+
+    return weekday, hour, title, description, duration
+
+def weekday_to_number(weekday_str):
+    weekday_map = {
+        'Monday': 1,
+        'Tuesday': 2,
+        'Wednesday': 3,
+        'Thursday': 4,
+        'Friday': 5,
+        'Saturday': 6,
+        'Sunday': 7,
+    }
+    return weekday_map.get(weekday_str.capitalize(), None)
 
 def read_csv():
     # 读取 CSV 文件
@@ -207,54 +255,120 @@ def _main() -> None:
         params = None
         env.reset(go_home=True)
 
-        if task_value == 'ContactsAddContact':
-            name, number = extract_name_and_number(row['instruction'])
-            if name is not None and number is not None:
-                print(f"Name: {name}, Number: {number}")
-                params = {
-                    'name': name,
-                    'number': number
-                }
-
-        if task_value == 'ContactsNewContactDraft':
-            result = extract_contact_details(row['instruction'])
-            if name is not None and number is not None:
-                print(f"Name: {result}")
-                params = {
-                    "first": result['first_name'],
-                    "last": result['last_name'],
-                    "phone": result['phone'],
-                    "phone_label": result['phone_label'],
-                }
-
-        # if task_value == 'SimpleCalendarAddOneEvent':
-        #     year, month, day, hour, title, description, duration = extract_calendar_event_info(row['instruction'])
-        #     if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None:
-        #         print(f"year: {year}, month: {month}")
-        #         event = task_type._get_random_target_row()
-        #         n_noise_events = random.randint(0, 20)
+        # if task_value == 'ContactsAddContact':
+        #     name, number = extract_name_and_number(row['instruction'])
+        #     if name is not None and number is not None:
+        #         print(f"Name: {name}, Number: {number}")
         #         params = {
-        #             "year": year,
-        #             'month': month,
-        #             "day": day,
-        #             'hour': hour,
-        #             'duration_mins': duration,
-        #             'event_title': title,
-        #             'event_description': description,
-        #             'row_objects': [event],
-        #             'noise_row_objects': generate_noise_events(
-        #                 [event], n_noise_events
-        #             ),
+        #             'name': name,
+        #             'number': number
+        #         }
+        #
+        # if task_value == 'ContactsNewContactDraft':
+        #     result = extract_contact_details(row['instruction'])
+        #     if name is not None and number is not None:
+        #         print(f"Name: {result}")
+        #         params = {
+        #             "first": result['first_name'],
+        #             "last": result['last_name'],
+        #             "phone": result['phone'],
+        #             "phone_label": result['phone_label'],
         #         }
 
-        if task_value == 'SimpleSmsReply':
-            number, message = extract_sms_reply(row['instruction'])
-            if message is not None and number is not None:
-                print(f"message: {message}, Number: {number}")
+        if task_value == 'SimpleCalendarAddOneEvent':
+            year, month, day, hour, title, description, duration = extract_calendar_event_info(row['instruction'])
+            if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None:
+                print(f"year: {year}, month: {month}")
+
+                start_ts = _create_unix_ts(day=day,hour=hour)
+                end_ts = start_ts + duration * 60
+                event = sqlite_schema_utils.CalendarEvent(
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    title=title,
+                    description=description
+                )
+                n_noise_events = random.randint(0, 20)
                 params = {
-                    'message': message,
-                    'number': number
+                    "year": year,
+                    'month': month,
+                    "day": day,
+                    'hour': hour,
+                    'duration_mins': duration,
+                    'event_title': title,
+                    'event_description': description,
+                    'row_objects': [event],
+                    'noise_row_objects': generate_noise_events(
+                        [event], n_noise_events
+                    ),
                 }
+
+        if task_value == 'SimpleCalendarAddOneEventInTwoWeeks':
+            hour, title, description, duration = extract_event_info(row['instruction'])
+            if hour is not None and title is not None and description is not None and duration is not None:
+                print(f"hour: {hour}, title: {title}")
+
+                start_ts = _create_unix_ts(day= device_constants.DT.day + 14,hour=hour)
+                end_ts = start_ts + duration * 60
+                event = sqlite_schema_utils.CalendarEvent(
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    title=title,
+                    description=description
+                )
+                n_noise_events = random.randint(0, 20)
+                params = {
+                    "year": device_constants.DT.year,
+                    'month': device_constants.DT.month,
+                    "day": event.start_datetime.day,
+                    'hour': hour,
+                    'duration_mins': duration,
+                    'event_title': title,
+                    'event_description': description,
+                    'row_objects': [event],
+                    'noise_row_objects': generate_noise_events(
+                        [event], n_noise_events
+                    ),
+                }
+
+        if task_value == 'SimpleCalendarAddOneEventRelativeDay':
+            week, hour, title, description, duration = extract_event_details(row['instruction'])
+            if hour is not None and title is not None and description is not None and duration is not None and week is not None:
+                print(f"hour: {hour}, title: {title}, week: {week}")
+
+                date_num = weekday_to_number(week)
+                start_ts = _create_unix_ts(day= device_constants.DT.day + date_num,hour=hour)
+                end_ts = start_ts + duration * 60
+                event = sqlite_schema_utils.CalendarEvent(
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    title=title,
+                    description=description
+                )
+                n_noise_events = random.randint(0, 20)
+                params = {
+                    "year": device_constants.DT.year,
+                    'month': device_constants.DT.month,
+                    "day": event.start_datetime.day,
+                    'hour': hour,
+                    'duration_mins': duration,
+                    'event_title': title,
+                    'event_description': description,
+                    'row_objects': [event],
+                    'noise_row_objects': generate_noise_events(
+                        [event], n_noise_events
+                    ),
+                }
+
+
+        # if task_value == 'SimpleSmsReply':
+        #     number, message = extract_sms_reply(row['instruction'])
+        #     if message is not None and number is not None:
+        #         print(f"message: {message}, Number: {number}")
+        #         params = {
+        #             'message': message,
+        #             'number': number
+        #         }
 
         # if task_value == 'SimpleSmsSend':
         #     number, message = extract_sms_info(row['instruction'])

@@ -104,7 +104,7 @@ _TASK = flags.DEFINE_string(
 
 _EPISODE_ID = flags.DEFINE_string(
     'episode_id',
-    None,
+    '-1',
     'A episode id',
 )
 
