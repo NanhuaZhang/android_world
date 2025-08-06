@@ -242,6 +242,20 @@ class Expense(SQLiteRow):
       11: 'Donation',
   }
 
+  category_name_to_id: ClassVar[dict[str, int]] = {
+      'Others': 1,
+      'Income': 2,
+      'Food': 3,
+      'Housing': 4,
+      'Social': 5,
+      'Entertainment': 6,
+      'Transportation': 7,
+      'Clothes': 8,
+      'Health Care': 9,
+      'Education': 10,
+      'Donation': 11,
+  }
+
   @property
   def amount_dollars(self) -> str:
     return f'${self.amount / 100}'

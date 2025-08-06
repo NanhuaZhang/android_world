@@ -46,7 +46,10 @@ from android_world.task_evals.single.calendar.calendar import generate_noise_eve
 from android_world.task_evals.utils import sqlite_schema_utils
 from android_world.utils.datetime_utils import create_random_october_2023_unix_ts, _create_unix_ts
 from android_world.task_evals.single.vlc import generate_file_name
-from android_world.task_evals.utils import user_data_generation
+from android_world.task_evals.utils import sqlite_schema_utils, user_data_generation
+
+from android_world.task_evals.common_validators import sqlite_validators
+from android_world.task_evals.single.expense import _get_random_timestamp, _generate_expense
 
 logging.set_verbosity(logging.WARNING)
 
@@ -71,6 +74,7 @@ def _find_adb_directory() -> str:
     potential_paths = [
         os.path.expanduser('~/Library/Android/sdk/platform-tools/adb'),
         os.path.expanduser('~/Android/Sdk/platform-tools/adb'),
+        os.path.expanduser('~/Android/platform-tools/adb'),
     ]
     for path in potential_paths:
         if os.path.isfile(path):
@@ -252,6 +256,49 @@ def extract_vlc_playlist_create(instruction):
 
     return playlist_name, files
 
+def extract_expense_add_multiple(instruction):
+    # 定义正则表达式
+    pattern_a = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$(\d+\.\d{2})\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
+    pattern_b = r'(.+?)\|(\$?\d+\.\d{2})\|(.+?)\|(.+)'
+    pattern_c = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$(\d+\.\d{2})\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
+
+    results = []
+
+    # 尝试匹配格式 a
+    expenses_a = re.findall(pattern_a, instruction, re.DOTALL)
+    if expenses_a:
+        for name, amount, category, note in expenses_a:
+            results.append({
+                'name': name.strip(),
+                'amount': amount,
+                'category': category.strip(),
+                'note': note.strip()
+            })
+    else:
+        # 尝试匹配格式 b
+        expenses_b = re.findall(pattern_b, instruction)
+        if expenses_b:
+            for name, amount, category, note in expenses_b:
+                results.append({
+                    'name': name.strip(),
+                    'amount': amount.strip('$'),  # 去掉美元符号
+                    'category': category.strip(),
+                    'note': note.strip()
+                })
+        else:
+            # 尝试匹配格式 c
+            expenses_c = re.findall(pattern_c, instruction, re.DOTALL)
+            if expenses_c:
+                for name, amount, category, note in expenses_c:
+                    results.append({
+                        'name': name.strip(),
+                        'amount': amount,
+                        'category': category.strip(),
+                        'note': note.strip()
+                    })
+    
+    return results
+
 def read_csv():
     # 读取 CSV 文件
     df = pd.read_csv('output.csv')  # 替换为你的文件
@@ -431,6 +478,36 @@ def _main() -> None:
                     'playlist_name': playlist_name,
                     'files': files,
                     'noise_files': [generate_file_name() for _ in range(len(files))]
+                }
+        
+        if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
+            results = extract_expense_add_multiple(row['instruction'])
+            if len(results) > 0:
+                target_rows = []
+                for result in results:
+                    if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
+                        expense_unix_time_s = _get_random_timestamp()
+                        expense_unix_time_ms = expense_unix_time_s * 1000
+                        print(f'result >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {result}')
+                        category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
+                        target_rows.append(sqlite_schema_utils.Expense(
+                            result['name'],
+                            int(float(result['amount'])*100),
+                            category_id,
+                            result['note'],
+                            expense_unix_time_ms,
+                            expense_unix_time_ms,
+                        ))
+                        noise_rows = sqlite_schema_utils.get_random_items(
+                            10,
+                            _generate_expense,
+                            replacement=False,
+                            filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+                        )
+                params = {
+                    sqlite_validators.ROW_OBJECTS: target_rows,
+                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+                    'text_representation_type': random.choice(['csv', 'text_block']),
                 }
 
         if params is None:
