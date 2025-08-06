@@ -183,7 +183,7 @@ def extract_calendar_event_info(instruction):
     return int(year), int(month), int(day), int(hour), title, description, duration
 
 def extract_file_delete(instruction):
-    pattern = r"Delete the file ([\w.]+\.mp3).*?located in the (\w+) folder"
+    pattern = r"Delete the file ([\w.-]+?\.[a-zA-Z0-9]+).*?located in the ([\w\s]+?) folder"
     match = re.search(pattern, instruction)
 
     if match:
