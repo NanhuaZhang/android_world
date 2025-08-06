@@ -516,6 +516,7 @@ def _main() -> None:
                     'noise_row_objects': generate_noise_events(
                         [event], n_noise_events
                     ),
+                    'repeat_rule': recurrence,
                 }
 
 
