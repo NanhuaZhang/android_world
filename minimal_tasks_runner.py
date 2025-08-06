@@ -245,6 +245,18 @@ def extract_file_delete(instruction):
     else:
         return None, None
 
+def extract_file_move(instruction):
+    pattern = r"Move the file ([\w.-]+?\.[\w]+) from ([\w\s]+?) .*? to the ([\w\s]+?) within"
+    match = re.search(pattern, instruction)
+
+    if match:
+        file_name = match.group(1)
+        source_folder = match.group(2)
+        destination_folder = match.group(3)
+        return file_name, source_folder, destination_folder
+    else:
+        return None, None, None
+
 def extract_vlc_playlist_create(instruction):
     # 提取播放列表名称
     playlist_name_match = re.search(r'Create a playlist titled "([^"]+)"', instruction)
@@ -467,6 +479,18 @@ def _main() -> None:
                 params = {
                     "file_name": file_name,
                     "subfolder": subfolder,
+                    "noise_candidates": noise_candidates,
+                }
+        
+        if task_value == 'FilesMoveFile':
+            file_name, source_folder, destination_folder = extract_file_move(row['instruction'])
+            if file_name is not None and source_folder is not None and destination_folder is not None:
+                print(f"file_name: {file_name}, source_folder: {source_folder}, destination_folder: {destination_folder}")
+                noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[source_folder]
+                params = {
+                    "file_name": file_name,
+                    "source_folder": source_folder,
+                    "destination_folder": destination_folder,
                     "noise_candidates": noise_candidates,
                 }
 
