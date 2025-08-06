@@ -45,6 +45,8 @@ import subprocess
 from android_world.task_evals.single.calendar.calendar import generate_noise_events
 from android_world.task_evals.utils import sqlite_schema_utils
 from android_world.utils.datetime_utils import create_random_october_2023_unix_ts, _create_unix_ts
+from android_world.task_evals.single.vlc import generate_file_name
+from android_world.task_evals.utils import user_data_generation
 
 logging.set_verbosity(logging.WARNING)
 
@@ -228,6 +230,27 @@ def weekday_to_number(weekday_str):
         'Sunday': 7,
     }
     return weekday_map.get(weekday_str.capitalize(), None)
+def extract_file_delete(instruction):
+    pattern = r"Delete the file ([\w.-]+?\.[a-zA-Z0-9]+).*?located in the ([\w\s]+?) folder"
+    match = re.search(pattern, instruction)
+
+    if match:
+        filename = match.group(1)  # 输出: final_smart_lion.mp3
+        folder_name = match.group(2)  # 输出: Notifications
+        return filename, folder_name
+    else:
+        return None, None
+
+def extract_vlc_playlist_create(instruction):
+    # 提取播放列表名称
+    playlist_name_match = re.search(r'Create a playlist titled "([^"]+)"', instruction)
+    playlist_name = playlist_name_match.group(1) if playlist_name_match else None
+
+    # 提取文件列表
+    files_match = re.search(r'in order: (.+)', instruction)
+    files = files_match.group(1).split(', ') if files_match else []
+
+    return playlist_name, files
 
 def read_csv():
     # 读取 CSV 文件
@@ -301,6 +324,16 @@ def _main() -> None:
                     'noise_row_objects': generate_noise_events(
                         [event], n_noise_events
                     ),
+                }
+        if task_value == 'ContactsNewContactDraft':
+            result = extract_contact_details(row['instruction'])
+            if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
+                print(f"Name: {result}")
+                params = {
+                    "first": result['first_name'],
+                    "last": result['last_name'],
+                    "phone": result['phone'],
+                    "phone_label": result['phone_label'],
                 }
 
         if task_value == 'SimpleCalendarAddOneEventInTwoWeeks':
@@ -378,6 +411,27 @@ def _main() -> None:
         #             'message': message,
         #             'number': number
         #         }
+
+        if task_value == 'FilesDeleteFile':
+            file_name, subfolder = extract_file_delete(row['instruction'])
+            if file_name is not None and subfolder is not None:
+                print(f"file_name: {file_name}, subfolder: {subfolder}")
+                noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[subfolder]
+                params = {
+                    "file_name": file_name,
+                    "subfolder": subfolder,
+                    "noise_candidates": noise_candidates,
+                }
+
+        if task_value == 'VlcCreatePlaylist':
+            playlist_name, files = extract_vlc_playlist_create(row['instruction'])
+            if playlist_name is not None and files:
+                print(f"Playlist Name: {playlist_name}, Files: {files}")
+                params = {
+                    'playlist_name': playlist_name,
+                    'files': files,
+                    'noise_files': [generate_file_name() for _ in range(len(files))]
+                }
 
         if params is None:
             continue
