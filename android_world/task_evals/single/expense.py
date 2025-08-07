@@ -79,7 +79,7 @@ class _ExpenseDeleteMultiple(_Expense, sqlite_validators.DeleteMultipleRows):
     expense_names = [expense.name for expense in targets]
     expense_names_str = ', '.join(expense_names)
     return (
-        f'Delete the following expenses from {_APP_NAME}: {expense_names_str}.'
+        f'Delete the following expenses from {_APP_NAME}: {expense_names_str}. (Click the MORE button at the bottom of the HOME page or the menu button on the left side of the title to enter the Expense Logs page)'
     )
 
   def validate_deletion_integrity(
@@ -139,7 +139,7 @@ class ExpenseDeleteMultiple2(_ExpenseDeleteMultiple):
 
   complexity = 3.4
   n_rows = 3
-  n_rows_noise = 50
+  n_rows_noise = 20
 
 
 class _ExpenseDeleteDuplicates(_Expense, sqlite_validators.DeleteDuplicateRows):
@@ -259,7 +259,7 @@ class _ExpenseAddMultiple(_Expense, sqlite_validators.AddMultipleRows):
         self.params[sqlite_validators.ROW_OBJECTS],
         self.params[_TEXT_REPRESENTATION_TYPE],
     )
-    return f'Add the following expenses into the {_APP_NAME}:\n{text_repr}'
+    return f'Add the following expenses into the {_APP_NAME}:\n{text_repr}. (The category list can be scrolled left and right, and there is no need to enter the $ symbol in the amount input box)'
 
   def validate_addition_integrity(
       self,

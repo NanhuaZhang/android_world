@@ -71,6 +71,16 @@ RETRY_KEYWORDS = [
     'incorrect',
 ]
 
+_NOTES = [
+    'Paid by card',
+    'Urgent',
+    'Monthly recurring',
+    'Want to have',
+    'A need',
+    'Remember to transfer funds',
+    'I may repeat this',
+]
+
 
 def _find_adb_directory() -> str:
     """Returns the directory where adb is located."""
@@ -356,6 +366,16 @@ def extract_expense_add_multiple(instruction):
                         'note': note.strip()
                     })
     return results
+
+def extract_expense_delete_details(instruction):
+    # 找到冒号后的部分
+    if ':' in instruction:
+        after_colon = instruction.split(':', 1)[1]
+        # 去除句号并按逗号分隔
+        items = [item.strip().rstrip('.') for item in after_colon.split(',')]
+        # 去除空项并返回
+        return [item for item in items if item]
+    return []
 
 
 def extract_from_template(template: str, text: str) -> tuple:
@@ -688,6 +708,47 @@ def _main() -> None:
                     'time': '7:15pm',
                     'date': 'October 16 2023',
                 }
+        if task_value == 'ExpenseDeleteMultiple' or task_value == 'ExpenseDeleteMultiple2' or task_value == 'ExpenseDeleteSingle':
+            names = extract_expense_delete_details(row['instruction'])
+            if len(names) > 0:
+                target_rows = []
+                for name in names:
+                    if name is not None:
+                        category_id = random.choice(
+                            list(sqlite_schema_utils.Expense.category_id_to_name.keys())
+                        )
+                        amount = random.randint(
+                            1000, 50000
+                        )  # Amount in cents (e.g., $10.00 - $500.00)
+                        note = random.choice(_NOTES)
+                        expense_unix_time_s = _get_random_timestamp()
+                        expense_unix_time_ms = expense_unix_time_s * 1000
+                        target_rows.append(sqlite_schema_utils.Expense(
+                            name,
+                            amount,
+                            category_id,
+                            note,
+                            expense_unix_time_ms,
+                            expense_unix_time_ms,
+                        ))
+                        if task_value == 'ExpenseDeleteMultiple2':
+                          noise_rows = sqlite_schema_utils.get_random_items(
+                              20,
+                              _generate_expense,
+                              replacement=False,
+                              filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+                          )
+                        elif task_value == 'ExpenseDeleteMultiple':
+                          noise_rows = []
+                if task_value == 'ExpenseDeleteSingle' and len(target_rows) > 0:
+                  params = {
+                    sqlite_validators.ROW_OBJECTS: target_rows,
+                  }
+                elif len(target_rows) > 0:
+                  params = {
+                    sqlite_validators.ROW_OBJECTS: target_rows,
+                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+                  }
 
         # if task_value == 'SimpleSmsReply':
         #     number, message = extract_sms_reply(row['instruction'])
@@ -740,35 +801,35 @@ def _main() -> None:
         #             'noise_files': [generate_file_name() for _ in range(len(files))]
         #         }
 
-        # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
-        #     results = extract_expense_add_multiple(row['instruction'])
-        #     if len(results) > 0:
-        #         target_rows = []
-        #         for result in results:
-        #             if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
-        #                 expense_unix_time_s = _get_random_timestamp()
-        #                 expense_unix_time_ms = expense_unix_time_s * 1000
-        #                 print(f'result >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {result}')
-        #                 category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
-        #                 target_rows.append(sqlite_schema_utils.Expense(
-        #                     result['name'],
-        #                     int(float(result['amount'])*100),
-        #                     category_id,
-        #                     result['note'],
-        #                     expense_unix_time_ms,
-        #                     expense_unix_time_ms,
-        #                 ))
-        #                 noise_rows = sqlite_schema_utils.get_random_items(
-        #                     10,
-        #                     _generate_expense,
-        #                     replacement=False,
-        #                     filter_fn=lambda r: all(r.name != t.name for t in target_rows),
-        #                 )
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #             'text_representation_type': random.choice(['csv', 'text_block']),
-        #         }
+        if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
+            results = extract_expense_add_multiple(row['instruction'])
+            if len(results) > 0:
+                target_rows = []
+                for result in results:
+                    if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
+                        expense_unix_time_s = _get_random_timestamp()
+                        expense_unix_time_ms = expense_unix_time_s * 1000
+                        print(f'result >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {result}')
+                        category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
+                        target_rows.append(sqlite_schema_utils.Expense(
+                            result['name'],
+                            int(float(result['amount'])*100),
+                            category_id,
+                            result['note'],
+                            expense_unix_time_ms,
+                            expense_unix_time_ms,
+                        ))
+                        noise_rows = sqlite_schema_utils.get_random_items(
+                            10,
+                            _generate_expense,
+                            replacement=False,
+                            filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+                        )
+                params = {
+                    sqlite_validators.ROW_OBJECTS: target_rows,
+                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+                    'text_representation_type': random.choice(['csv', 'text_block']),
+                }
 
         if params is None:
             continue
