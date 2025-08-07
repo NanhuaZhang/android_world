@@ -52,6 +52,7 @@ from android_world.task_evals.utils import sqlite_schema_utils, user_data_genera
 
 from android_world.task_evals.common_validators import sqlite_validators
 from android_world.task_evals.single.expense import _get_random_timestamp, _generate_expense
+from parse import parse
 
 logging.set_verbosity(logging.WARNING)
 
@@ -214,6 +215,7 @@ def extract_repeat_event_info(text: str):
 
     return title, year, month, day, hour, recurrence, duration, description
 
+
 def extract_event_info(text):
     # 提取时间（小时）
     time_match = re.search(r'(\d{1,2})\s*(?:h|:00)', text)
@@ -235,7 +237,8 @@ def extract_event_info(text):
 
 
 def extract_event_details(text):
-    weekday_match = re.search(r'\b(on|for)?\s*(this\s+)?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b', text, re.IGNORECASE)
+    weekday_match = re.search(r'\b(on|for)?\s*(this\s+)?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b',
+                              text, re.IGNORECASE)
     hour_match = re.search(r'\b(?:at\s+)?(\d{1,2})h\b', text)
     title_match = re.search(r"title\s+'([^']+)'", text)
     description_match = re.search(r"description\s+'([^']+)'", text)
@@ -249,6 +252,19 @@ def extract_event_details(text):
 
     return weekday, hour, title, description, duration
 
+
+def extract_event_tuple(text: str):
+    try:
+        hour = int(re.search(r'at (\d{1,2})h', text).group(1))
+        title = re.search(r"title\s+'([^']+)'", text).group(1)
+        description = re.search(r"description\s+'([^']+)'", text).group(1)
+        duration = int(re.search(r'last for (\d+)\s*min', text).group(1))
+
+        return hour, title, description, duration
+    except AttributeError:
+        return None
+
+
 def weekday_to_number(weekday_str):
     weekday_map = {
         'Monday': 1,
@@ -260,6 +276,8 @@ def weekday_to_number(weekday_str):
         'Sunday': 7,
     }
     return weekday_map.get(weekday_str.capitalize(), None)
+
+
 def extract_file_delete(instruction):
     pattern = r"Delete the file ([\w.-]+?\.[a-zA-Z0-9]+).*?located in the ([\w\s]+?) folder"
     match = re.search(pattern, instruction)
@@ -270,6 +288,7 @@ def extract_file_delete(instruction):
         return filename, folder_name
     else:
         return None, None
+
 
 def extract_file_move(instruction):
     pattern = r"Move the file ([\w.-]+?\.[\w]+) from ([\w\s]+?) .*? to the ([\w\s]+?) within"
@@ -283,6 +302,7 @@ def extract_file_move(instruction):
     else:
         return None, None, None
 
+
 def extract_vlc_playlist_create(instruction):
     # 提取播放列表名称
     playlist_name_match = re.search(r'Create a playlist titled "([^"]+)"', instruction)
@@ -293,6 +313,7 @@ def extract_vlc_playlist_create(instruction):
     files = files_match.group(1).split(', ') if files_match else []
 
     return playlist_name, files
+
 
 def extract_expense_add_multiple(instruction):
     # 定义正则表达式
@@ -336,11 +357,18 @@ def extract_expense_add_multiple(instruction):
                     })
     return results
 
+
+def extract_from_template(template: str, text: str) -> tuple:
+    result = parse(template, text)
+    return result.named.values() if result else None
+
+
 def read_csv():
     # 读取 CSV 文件
     df = pd.read_csv('output.csv')  # 替换为你的文件
     return df
 
+retry_task = ['2477', '3999', '1451', '2738', '4403', '1727', '4800', '4200', '4648', '3895', '5334', '4846', '5284', '782', '969', '4941', '847', '2165', '3898', '2986', '1502', '2374', '5287', '4355', '1616', '4701', '5040', '4103', '3745']
 
 def _main() -> None:
     """Runs a single task."""
@@ -360,7 +388,9 @@ def _main() -> None:
             raise ValueError('Task {} not found in registry.'.format(task_value))
         task_type: Type[task_eval.TaskEval] = aw_registry[task_value]
         params = None
-        env.reset(go_home=True)
+
+        if len(retry_task) >0 and str(row['id']) not in retry_task:
+            continue
 
         # if task_value == 'ContactsAddContact':
         #     name, number = extract_name_and_number(row['instruction'])
@@ -409,16 +439,16 @@ def _main() -> None:
                         [event], n_noise_events
                     ),
                 }
-        # if task_value == 'ContactsNewContactDraft':
-        #     result = extract_contact_details(row['instruction'])
-        #     if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
-        #         print(f"Name: {result}")
-        #         params = {
-        #             "first": result['first_name'],
-        #             "last": result['last_name'],
-        #             "phone": result['phone'],
-        #             "phone_label": result['phone_label'],
-        #         }
+        if task_value == 'ContactsNewContactDraft':
+            result = extract_contact_details(row['instruction'])
+            if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
+                print(f"Name: {result}")
+                params = {
+                    "first": result['first_name'],
+                    "last": result['last_name'],
+                    "phone": result['phone'],
+                    "phone_label": result['phone_label'],
+                }
 
         if task_value == 'SimpleCalendarAddOneEventInTwoWeeks':
             hour, title, description, duration = extract_event_info(row['instruction'])
@@ -426,6 +456,34 @@ def _main() -> None:
                 print(f"hour: {hour}, title: {title}")
 
                 start_ts = _create_unix_ts(day= device_constants.DT.day + 14,hour=hour)
+                end_ts = start_ts + duration * 60
+                event = sqlite_schema_utils.CalendarEvent(
+                    start_ts=start_ts,
+                    end_ts=end_ts,
+                    title=title,
+                    description=description
+                )
+                n_noise_events = random.randint(0, 20)
+                params = {
+                    "year": device_constants.DT.year,
+                    'month': device_constants.DT.month,
+                    "day": event.start_datetime.day,
+                    'hour': hour,
+                    'duration_mins': duration,
+                    'event_title': title,
+                    'event_description': description,
+                    'row_objects': [event],
+                    'noise_row_objects': generate_noise_events(
+                        [event], n_noise_events
+                    ),
+                }
+
+        if task_value == 'SimpleCalendarAddOneEventTomorrow':
+            hour, title, description, duration = extract_event_tuple(row['instruction'])
+            if hour is not None and title is not None and description is not None and duration is not None:
+                print(f"hour: {hour}, title: {title}, description: {description}")
+
+                start_ts = _create_unix_ts(day= device_constants.DT.day + 1,hour=hour)
                 end_ts = start_ts + duration * 60
                 event = sqlite_schema_utils.CalendarEvent(
                     start_ts=start_ts,
@@ -516,8 +574,120 @@ def _main() -> None:
                     'noise_row_objects': generate_noise_events(
                         [event], n_noise_events
                     ),
+                    'repeat_rule': recurrence
                 }
 
+        if task_value == 'SimpleCalendarEventOnDateAtTime':
+            date, time = extract_from_template(
+                'What is on my schedule for {date} at {time} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.',
+                row['instruction'])
+            if date is not None and time is not None:
+                print(f"date: {date}, time: {time}")
+                params = {
+                    'date': date,
+                    'time': time,
+                    'duration': '30 m',
+                    'title': 'Team Meeting'
+                }
+
+        if task_value == 'SimpleCalendarAnyEventsOnDate':
+            date = extract_from_template(
+                "Do I have any events {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+                row['instruction'])
+            if date is not None:
+                print(f"date: {date}")
+                params = {
+                    'date': date,
+                    'title': '1-on-1 with Manager',
+                    'time': '11:00am',
+                }
+
+        if task_value == 'SimpleCalendarEventsInNextWeek':
+            extract_from_template(
+                "What events do I have in the next week in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+                row['instruction'])
+            params = {
+                'date': 'October 16 2023',
+                'duration': '30 m',
+                'title': 'Sports game',
+                'person': 'Amanda',
+                'time': '11:00am',
+            }
+
+        if task_value == 'SimpleCalendarEventsInTimeRange':
+            start_time, date = extract_from_template(
+                "Do I have any events between {start_time} and 8pm {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+                row['instruction'])
+            if date is not None and start_time is not None:
+                print(f"start_time: {start_time}, date: {date}")
+                params = {
+                    'start_time': start_time,
+                    'date': date,
+                    'duration': '30 m',
+                    'title': 'Sports game',
+                }
+
+        if task_value == 'SimpleCalendarEventsOnDate':
+            date = extract_from_template(
+                "What events do I have {date} in Simple Calendar Pro? Answer with the titles only. If there are multiple titles, format your answer as a comma separated list.",
+                row['instruction'])
+            date = list(date)[0]
+            if date is not None:
+                print(f"date: {date}")
+                params = {
+                    'date': date,
+                    'duration': '30 m',
+                    'title': 'Sports game',
+                    'time': '11:00am',
+                }
+
+        if task_value == 'SimpleCalendarFirstEventAfterStartTime':
+            time, date = extract_from_template(
+                "What is my first event after {time} {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+                row['instruction'])
+            if date is not None and time is not None:
+                print(f"date: {date},time :{time}")
+                params = {
+                    'date': date,
+                    'time': time,
+                    'duration': '30 m',
+                    'title': 'Sports game',
+                }
+
+        if task_value == 'SimpleCalendarLocationOfEvent':
+            title = extract_from_template(
+                "What is the location of my {title} event in Simple Calendar Pro? Answer with the location only.",
+                row['instruction'])
+            title = list(title)[0]
+            if title is not None:
+                print(f"title: {title},")
+                params = {
+                    'title': title,
+                    'location': 'Conference Room A',
+                    'date': 'October 16 2023',
+                    'time': '1:30pm'
+                }
+
+        if task_value == 'SimpleCalendarNextEvent':
+            print(f"SimpleCalendarNextEvent,")
+            params = {
+                'time': '7:15pm',
+                'duration': '30 m',
+                'title': 'Sports game',
+            }
+
+        if task_value == 'SimpleCalendarNextMeetingWithPerson':
+            person = extract_from_template(
+                "When is my next meeting with {person} in Simple Calendar Pro? Express your answer in the format <month name> <day> <year> <hour in 24-hour format>:<minutes>.",
+                row['instruction'])
+            person = list(person)[0]
+            if person is not None:
+                print(f"person: {person},")
+                params = {
+                    'person': person,
+                    'time': '7:15pm',
+                    'date': 'October 16 2023',
+                }
 
         # if task_value == 'SimpleSmsReply':
         #     number, message = extract_sms_reply(row['instruction'])
@@ -547,7 +717,7 @@ def _main() -> None:
         #             "subfolder": subfolder,
         #             "noise_candidates": noise_candidates,
         #         }
-        
+
         # if task_value == 'FilesMoveFile':
         #     file_name, source_folder, destination_folder = extract_file_move(row['instruction'])
         #     if file_name is not None and source_folder is not None and destination_folder is not None:
@@ -569,7 +739,7 @@ def _main() -> None:
         #             'files': files,
         #             'noise_files': [generate_file_name() for _ in range(len(files))]
         #         }
-        
+
         # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
         #     results = extract_expense_add_multiple(row['instruction'])
         #     if len(results) > 0:
@@ -602,6 +772,8 @@ def _main() -> None:
 
         if params is None:
             continue
+
+        env.reset(go_home=True)
 
         task = task_type(params)
         task.initialize_task(env)

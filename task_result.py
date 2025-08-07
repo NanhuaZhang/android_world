@@ -2,7 +2,7 @@ import os
 import json
 
 root_dir = "task_histories"
-output_file = "trajectory_mapping.json"
+trajectory_output_file = "trajectory_mapping.json"
 result = {}
 
 # 遍历每个子文件夹
@@ -24,7 +24,7 @@ for folder_name in os.listdir(root_dir):
             break  # 每个文件夹只取第一个 json 文件
 
 # 保存为 JSON 文件
-with open(output_file, "w", encoding="utf-8") as f:
+with open(trajectory_output_file, "w", encoding="utf-8") as f:
     json.dump(result, f, indent=4)
 
-print(f"✅ 结果已保存为 {output_file}")
+print(f"✅ 结果已保存为 {trajectory_output_file}")

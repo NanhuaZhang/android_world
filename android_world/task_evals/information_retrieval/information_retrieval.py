@@ -82,7 +82,7 @@ class InformationRetrieval(task_eval.TaskEval, abc.ABC):
   def initialize_task(self, env: interface.AsyncEnv) -> None:
     super().initialize_task(env)
     proto_utils.initialize_proto(self.task, self.params)
-    _maybe_replace_date(self.params)
+    # _maybe_replace_date(self.params)
 
     # Initialize app-specific state
     relevant_state = self.task.relevant_state.state
