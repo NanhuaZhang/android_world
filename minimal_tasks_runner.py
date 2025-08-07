@@ -432,6 +432,41 @@ def _main() -> None:
         #             "phone_label": result['phone_label'],
         #         }
 
+        if task_value == 'MarkorCreateNote':
+            file_name,text = extract_from_template(
+                "Create a new note in Markor named {file_name} with the following text: {text}",
+                row['instruction'])
+            if file_name is not None and text is not None:
+                print(f"text: {text},file_name:{file_name}")
+                params = {
+                    'file_name': file_name,
+                    'text': text,
+                }
+
+        if task_value == 'MarkorCreateNoteAndSms':
+            file_name,text,number = extract_from_template(
+                "Create a new note in Markor named {file_name} with the following text:{text}. Share the entire content of the note with the phone number {number} via SMS using Simple SMS Messenger",
+                row['instruction'])
+            if file_name is not None and text is not None and number is not None:
+                print(f"text: {text},file_name:{file_name},number:{number}")
+                params = {
+                    'file_name': file_name,
+                    'text': text,
+                    'number': number
+                }
+
+        if task_value == 'MarkorCreateNoteFromClipboard':
+            file_name= extract_from_template(
+                  "Create a note in Markor named {file_name}. Perform a paste operation in the note and save the note.",
+                row['instruction'])
+            file_name = list(file_name)[0]
+            if file_name is not None :
+                print(f"file_name:{file_name}")
+                params = {
+                    'file_name': file_name,
+                    'file_content':user_data_generation.generate_random_string(10)
+                }
+
         if task_value == 'SimpleCalendarAddOneEvent':
             year, month, day, hour, title, description, duration = extract_calendar_event_info(row['instruction'])
             if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None:
