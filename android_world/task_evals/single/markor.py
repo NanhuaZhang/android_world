@@ -17,6 +17,7 @@
 import dataclasses
 import datetime
 import random
+import re
 from typing import Any
 
 from absl import logging
@@ -418,10 +419,19 @@ class MarkorCreateNote(Markor):
   app_names = ("markor",)
   complexity = 1.6
   schema = file_validators.CreateFile.schema
-  template = (
-      "Create a new note in Markor named {file_name} with the following text:"
-      " {text}"
-  )
+  # template = (
+  #     "Create a new note in Markor named {file_name} with the following text:"
+  #     " {text}"
+  # )
+
+  @property
+  def template(self) -> str:
+      file_name = self.params.get('file_name')
+      if re.search(r"\.md$", file_name):
+          return "Create a new note in Markor named {file_name} (ignore the file suffix. change type to MarkDown) with the following text: {text}"
+
+      return "Create a new note in Markor named {file_name} (ignore the file suffix. change type to Plain Text) with the following text: {text}"
+
 
   def __init__(self, params: dict[str, Any]):
     """See base class."""
