@@ -193,10 +193,10 @@ class MarkorEditNote(Markor):
             "Edit {file_name} in Markor. Add to the top of the note {header}"
         ),
         "footer": (
-            "Edit {file_name} in Markor. Add to the bottom of the note {footer}"
+            "Edit {file_name} in Markor. Add to the bottom of the note {footer}. (Edit the content and put it in the note footer)"
         ),
         "replace": (
-            "Edit {file_name} in Markor. Replace the text with {replace_text}"
+            "Edit {file_name} in Markor. Replace the text with {replace_text}. (To replace, you need to delete the original note content first)"
         ),
     }
 

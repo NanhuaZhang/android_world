@@ -52,6 +52,8 @@ from android_world.task_evals.utils import sqlite_schema_utils, user_data_genera
 
 from android_world.task_evals.common_validators import sqlite_validators
 from android_world.task_evals.single.expense import _get_random_timestamp, _generate_expense
+from android_world.task_evals.single.markor import _NOTE_TITLES
+from android_world.task_evals.single.recipe import _generate_random_recipe
 from parse import parse
 
 logging.set_verbosity(logging.WARNING)
@@ -329,9 +331,9 @@ def extract_expense_add_multiple(instruction):
     # 定义正则表达式
     pattern_a = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$?(\d+(?:\.\d+)?)\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
     pattern_b = r'(.+?)\|(\$?\d+(?:\.\d+)?)\|(.+?)\|(.+)'
-    pattern_c = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$?(\d+(?:\.\d+)?)\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
 
     results = []
+    type = None
 
     # 尝试匹配格式 a
     expenses_a = re.findall(pattern_a, instruction, re.DOTALL)
@@ -339,10 +341,11 @@ def extract_expense_add_multiple(instruction):
         for name, amount, category, note in expenses_a:
             results.append({
                 'name': name.strip(),
-                'amount': amount,
+                'amount': amount.strip('$'),
                 'category': category.strip(),
                 'note': note.strip()
             })
+        type = "text_block"
     else:
         # 尝试匹配格式 b
         expenses_b = re.findall(pattern_b, instruction)
@@ -354,18 +357,64 @@ def extract_expense_add_multiple(instruction):
                     'category': category.strip(),
                     'note': note.strip()
                 })
-        else:
-            # 尝试匹配格式 c
-            expenses_c = re.findall(pattern_c, instruction, re.DOTALL)
-            if expenses_c:
-                for name, amount, category, note in expenses_c:
-                    results.append({
-                        'name': name.strip(),
-                        'amount': amount,
-                        'category': category.strip(),
-                        'note': note.strip()
-                    })
-    return results
+            type = "csv"
+    return type, results
+
+def detect_recipe_type(text: str) -> str | None:
+    stripped = text.strip()
+    
+    # 如果第一行是表头，且包含竖线分隔
+    first_line = stripped.splitlines()[0]
+    if "|" in first_line and first_line.lower().startswith("title|description"):
+        return "csv"
+    
+    # 如果文本中有明显的 Recipe: 开头
+    if "Recipe:" in stripped.splitlines()[0] or any(line.startswith("Recipe:") for line in stripped.splitlines()):
+        return "text_block"
+    
+    return None
+
+def extract_recipe_add_params(text):
+    type = detect_recipe_type(text)
+    recipes = []
+
+    if type == "csv":
+        lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
+        header = lines[0].split("|")
+        for line in lines[1:]:
+            parts = line.split("|")
+            if len(parts) == len(header):
+                recipes.append(dict(zip(header, parts)))
+
+    elif type == "text_block":
+        blocks = re.split(r'\n\s*\n', text.strip())  # 按空行分隔每个食谱
+        for block in blocks:
+            recipe_data = {
+                "title": None,
+                "description": None,
+                "servings": None,
+                "preparationTime": None,
+                "ingredients": None,
+                "directions": None
+            }
+            for line in block.strip().splitlines():
+                line = line.strip()
+                if line.startswith("Recipe:"):
+                    recipe_data["title"] = line.replace("Recipe:", "").strip()
+                elif line.lower().startswith("description:"):
+                    recipe_data["description"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("servings:"):
+                    recipe_data["servings"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("preparationtime:"):
+                    recipe_data["preparationTime"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("ingredients:"):
+                    recipe_data["ingredients"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("directions:"):
+                    recipe_data["directions"] = line.split(":", 1)[1].strip()
+            recipes.append(recipe_data)
+
+    return type, recipes
+    
 
 def extract_expense_delete_details(instruction):
     # 找到冒号后的部分
@@ -920,7 +969,7 @@ def _main() -> None:
         #                       filter_fn=lambda r: all(r.name != t.name for t in target_rows),
         #                   )
         #                 elif task_value == 'ExpenseDeleteMultiple':
-        #                   noise_rows = []
+        #                   noise_rows: list[sqlite_schema_utils.Expense] = []
         #         if task_value == 'ExpenseDeleteSingle' and len(target_rows) > 0:
         #           params = {
         #             sqlite_validators.ROW_OBJECTS: target_rows,
@@ -983,14 +1032,13 @@ def _main() -> None:
         #         }
 
         # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
-        #     results = extract_expense_add_multiple(row['instruction'])
-        #     if len(results) > 0:
-        #         target_rows = []
+        #     type,results = extract_expense_add_multiple(row['instruction'])
+        #     if type is not None and len(results) > 0:
+        #         target_rows: list[sqlite_schema_utils.Expense] = []
         #         for result in results:
         #             if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
         #                 expense_unix_time_s = _get_random_timestamp()
         #                 expense_unix_time_ms = expense_unix_time_s * 1000
-        #                 print(f'result >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {result}')
         #                 category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
         #                 target_rows.append(sqlite_schema_utils.Expense(
         #                     result['name'],
@@ -1000,17 +1048,100 @@ def _main() -> None:
         #                     expense_unix_time_ms,
         #                     expense_unix_time_ms,
         #                 ))
-        #                 noise_rows = sqlite_schema_utils.get_random_items(
-        #                     10,
-        #                     _generate_expense,
-        #                     replacement=False,
-        #                     filter_fn=lambda r: all(r.name != t.name for t in target_rows),
-        #                 )
+        #         noise_rows = sqlite_schema_utils.get_random_items(
+        #             10,
+        #             _generate_expense,
+        #             replacement=False,
+        #             filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+        #         )
         #         params = {
         #             sqlite_validators.ROW_OBJECTS: target_rows,
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #             'text_representation_type': random.choice(['csv', 'text_block']),
+        #             'text_representation_type': type,
         #         }
+
+        # if task_value == 'MarkorDeleteNote':
+        #     date = extract_from_template(
+        #         "Delete the note in Markor named {file_name}.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date}")
+        #         params = {
+        #             'file_name': date,
+        #             "noise_candidates": _NOTE_TITLES
+        #         }
+
+        # if task_value == 'MarkorEditNote':
+        #   edit_type = None
+        #   param1 = None
+        #   param2 = None
+        #   if "the top" in row['instruction']:
+        #     edit_type = "header"
+        #     param1, param2 = extract_from_template(
+        #         "Edit {file_name} in Markor. Add to the top of the note {header}",
+        #         row['instruction']
+        #     )
+        #   elif "the bottom" in row['instruction']:
+        #     edit_type = "footer"
+        #     param1, param2 = extract_from_template(
+        #         "Edit {file_name} in Markor. Add to the bottom of the note {footer}",
+        #         row['instruction']
+        #     )
+        #   elif "replace the text" in row['instruction'].lower():
+        #     edit_type = "replace"
+        #     param1, param2 = extract_from_template(
+        #         "Edit {file_name} in Markor. Replace the text with {replace_text}.",
+        #         row['instruction']
+        #     )
+        #   print(f"edit_type: {edit_type}")
+        #   print(f"param1: {param1}, param2: {param2}")
+        #   if param1 is not None and param2 is not None:
+        #     params = {
+        #       'file_name': param1,
+        #       'edit_type': edit_type,
+        #     }
+
+        #     if edit_type == "header":
+        #       params["header"] = param2
+        #     elif edit_type == "footer":
+        #       params["footer"] = param2
+        #     elif edit_type == "replace":
+        #       params["replace_text"] = param2
+
+        if task_value == 'RecipeAddMultipleRecipes' or task_value == 'RecipeAddSingleRecipe':
+            text_repr = extract_from_template(
+                "Add the following recipes into the Broccoli app:\n{text_repr}",
+                row['instruction']
+            )
+            recipe_type, recipes = extract_recipe_add_params(list(text_repr)[0])
+            if recipe_type is not None and len(recipes) > 0:
+                target_rows: list[sqlite_schema_utils.Recipe] = []
+                for recipe in recipes:
+                    if recipe['title'] is not None and recipe['description'] is not None and recipe['servings'] is not None and recipe['preparationTime'] is not None and recipe['ingredients'] is not None and recipe['directions'] is not None:
+                        target_rows.append(sqlite_schema_utils.Recipe(
+                            recipe['title'],
+                            recipe['description'],
+                            recipe['servings'],
+                            recipe['preparationTime'],
+                            '',
+                            recipe['ingredients'],
+                            recipe['directions'],
+                        ))
+                if task_value == 'RecipeAddSingleRecipe':
+                  noise_rows = []
+                else:
+                  noise_rows = sqlite_schema_utils.get_random_items(
+                    5,
+                    _generate_random_recipe,
+                    replacement=False,
+                    filter_fn=lambda r: any([r.title != t.title for t in target_rows]),
+                )
+                params = {
+                    sqlite_validators.ROW_OBJECTS: target_rows,
+                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+                    "text_representation_type": recipe_type,
+                }
 
         if params is None:
             continue

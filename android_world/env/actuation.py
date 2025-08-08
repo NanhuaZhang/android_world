@@ -86,6 +86,10 @@ def execute_adb_action(
         # First focus on enter text UI element.
         click_action = copy.deepcopy(action)
         click_action.action_type = 'click'
+        # markor: add text to header 时放开
+        # click_action.x = 20
+        # click_action.y = 310
+        # click_action.index = None
         execute_adb_action(click_action, screen_elements, screen_size, env, status)
         time.sleep(1.0)
 
@@ -98,6 +102,9 @@ def execute_adb_action(
         step_data['before_element_list'] = state.ui_elements
         target_element = state.ui_elements[action.index]
         center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
+        # markor: add text to header 时放开
+        # center_x, center_y = (20, 310) # target_element.bbox_pixels.center  # (x1, y1, x2, y2)
+
         click_point = (center_x, center_y)
         step_data['start_coords']= click_point
         step_data['end_coords']= click_point
