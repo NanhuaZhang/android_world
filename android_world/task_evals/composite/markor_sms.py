@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Tasks that involve Markor and SMS."""
-
+import re
 
 from absl import logging
 from android_world.env import interface
@@ -36,11 +36,19 @@ class MarkorCreateNoteAndSms(markor.Markor):
       "required": ["file_name", "text", "number"],
   }
 
-  template = (
-      "Create a new note in Markor named {file_name} with the following text:"
-      " {text}. Share the entire content of the note with the phone number"
-      " {number} via SMS using Simple SMS Messenger"
-  )
+  # template = (
+  #     "Create a new note in Markor named {file_name} with the following text:"
+  #     " {text}. Share the entire content of the note with the phone number"
+  #     " {number} via SMS using Simple SMS Messenger"
+  # )
+
+  @property
+  def template(self) -> str:
+      file_name = self.params.get('file_name')
+      if re.search(r"\.md$", file_name):
+          return "Create a new note in Markor named {file_name} (ignore the file suffix. change type to MarkDown) with the following text: {text}. Share the entire content of the note with the phone number {number} via SMS using Simple SMS Messenger"
+
+      return "Create a new note in Markor named {file_name} (ignore the file suffix. change type to Plain Text) with the following text: {text}. Share the entire content of the note with the phone number {number} via SMS using Simple SMS Messenger"
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:
     super().initialize_task(env)

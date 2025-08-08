@@ -472,10 +472,18 @@ class MarkorCreateNoteFromClipboard(Markor):
       },
       "required": ["file_name", "file_content"],
   }
-  template = (
-      "Create a note in Markor named {file_name}. Perform a paste operation in"
-      " the note and save the note."
-  )
+  # template = (
+  #     "Create a note in Markor named {file_name}. Perform a paste operation in"
+  #     " the note and save the note."
+  # )
+
+  @property
+  def template(self) -> str:
+      file_name = self.params.get('file_name')
+      if re.search(r"\.md$", file_name):
+          return "Create a new note in Markor named {file_name} (ignore the file suffix. change type to MarkDown) Perform a paste operation in the note and save the note."
+
+      return "Create a new note in Markor named {file_name} (ignore the file suffix. change type to Plain Text) Perform a paste operation in the note and save the note."
 
   def __init__(self, params: dict[str, Any]):
     """Initialize the task."""

@@ -3169,7 +3169,7 @@ tasks {
 tasks {
   name: "NotesRecipeIngredientCount"
   prompt: "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe."
-  complexity: 1
+  complexity: 3
   relevant_state {
     state: {
       notes_app {
@@ -3260,7 +3260,7 @@ tasks {
 tasks {
   name: "NotesMeetingAttendeeCount"
   prompt: "How many attendees were present in the meeting titled '{title}' in the Joplin app? Express your answer as just a single number."
-  complexity: 1
+  complexity: 3
   relevant_state {
     state: {
       notes_app {
@@ -3359,7 +3359,7 @@ tasks {
 tasks {
   name: "NotesIsTodo"
   prompt: "Is the note titled '{title}' in the Joplin app marked as a todo item? Respond with either 'True' if it is a todo or 'False' if not."
-  complexity: 1
+  complexity: 2
   relevant_state {
     state {
       notes_app {
