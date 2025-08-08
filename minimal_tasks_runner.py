@@ -388,7 +388,7 @@ def read_csv():
     df = pd.read_csv('output.csv')  # 替换为你的文件
     return df
 
-retry_task = ['954', '354', '355', '955', '1373', '281', '2463', '1016', '1771', '699']
+retry_task = []
 
 def _main() -> None:
     """Runs a single task."""
@@ -432,59 +432,60 @@ def _main() -> None:
         #             "phone_label": result['phone_label'],
         #         }
 
-        if task_value == 'NotesIsTodo':
-            title = extract_from_template(
-                "Is the note titled '{title}' in the Joplin app marked as a todo item? Respond with either 'True' if it is a todo or 'False' if not.",
-                row['instruction'])
-            title = list(title)[0]
-            if title is not None:
-                print(f"title: {title},")
-                params = {
-                    'title': title,
-                    'is_todo': "True",
-                    'body': 'Buy milk, eggs, bread, and cereal from the grocery store.',
-                    'folder': 'School'
-                }
-
-        if task_value == 'NotesMeetingAttendeeCount':
-            title = extract_from_template(
-                "How many attendees were present in the meeting titled '{title}' in the Joplin app? Express your answer as just a single number.",
-                row['instruction'])
-            title = list(title)[0]
-            if title is not None:
-                print(f"title: {title},")
-                params = {
-                    'title': title,
-                    'attendee_count': '5',
-                    'is_todo': "True",
-                    'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
-                }
-
-        # if task_value == 'NotesRecipeIngredientCount':
-        #     ingredient, title= extract_from_template(
-        #         "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> without using abbreviations.",
+        # if task_value == 'NotesIsTodo':
+        #     title = extract_from_template(
+        #         "Is the note titled '{title}' in the Joplin app marked as a todo item? Respond with either 'True' if it is a todo or 'False' if not.",
         #         row['instruction'])
-        #     if title is not None and ingredient is not None:
-        #         print(f"title: {title},ingredient{ingredient} ")
+        #     title = list(title)[0]
+        #     if title is not None:
+        #         print(f"title: {title},")
         #         params = {
         #             'title': title,
-        #             'ingredient_quantity': '2 cups',
-        #             'ingredient': ingredient,
-        #             'body': 'Ingredients:\n- 1 cup all-purpose flour\n- 1/2 cup granulated sugar\n- {ingredient_quantity} {ingredient}\n- 1 teaspoon baking powder\n- 2 tablespoons unsalted butter\n- 1/4 teaspoon salt\n\nInstructions:\n1. Preheat oven to 350°F (175°C).\n2. In a mixing bowl, combine all-purpose flour, granulated sugar, and baking powder.\n3. Add unsalted butter and salt, mixing until well combined.\n4. Grease a baking dish and pour the mixture into it.\n5. Bake in preheated oven for 25-30 minutes, or until golden brown.\n6. Let cool for a few minutes before serving.\n',
+        #             'is_todo': "True",
+        #             'body': 'Buy milk, eggs, bread, and cereal from the grocery store.',
+        #             'folder': 'School'
+        #         }
+        #
+        # if task_value == 'NotesMeetingAttendeeCount':
+        #     title = extract_from_template(
+        #         "How many attendees were present in the meeting titled '{title}' in the Joplin app? Express your answer as just a single number.",
+        #         row['instruction'])
+        #     title = list(title)[0]
+        #     if title is not None:
+        #         print(f"title: {title},")
+        #         params = {
+        #             'title': title,
+        #             'attendee_count': '5',
+        #             'is_todo': "True",
+        #             'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
         #         }
 
-        if task_value == 'NotesTodoItemCount':
-            folder= extract_from_template(
-                "How many to-dos do I have in the '{folder}' folder in the Joplin app? Express your answer as just a single number.",
+        if task_value == 'NotesRecipeIngredientCount':
+            ingredient, title= extract_from_template(
+                "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",
                 row['instruction'])
-            folder = list(folder)[0]
-            if folder is not None:
-                print(f"title: {folder} ")
+            if title is not None and ingredient is not None:
+                print(f"title: {title},ingredient{ingredient} ")
+                ingredient_quantity = '2 cups'
                 params = {
-                    'title': 'Personal Goals',
-                    'folder': folder,
-                    'body': 'Discuss project updates, assign tasks, and review deadlines.',
+                    'title': title,
+                    'ingredient_quantity': ingredient_quantity,
+                    'ingredient': ingredient,
+                    'body': f'Ingredients:\n- 1 cup all-purpose flour\n- 1/2 cup granulated sugar\n- {ingredient_quantity} {ingredient}\n- 1 teaspoon baking powder\n- 2 tablespoons unsalted butter\n- 1/4 teaspoon salt\n\nInstructions:\n1. Preheat oven to 350°F (175°C).\n2. In a mixing bowl, combine all-purpose flour, granulated sugar, and baking powder.\n3. Add unsalted butter and salt, mixing until well combined.\n4. Grease a baking dish and pour the mixture into it.\n5. Bake in preheated oven for 25-30 minutes, or until golden brown.\n6. Let cool for a few minutes before serving.\n',
                 }
+
+        # if task_value == 'NotesTodoItemCount':
+        #     folder= extract_from_template(
+        #         "How many to-dos do I have in the '{folder}' folder in the Joplin app? Express your answer as just a single number.",
+        #         row['instruction'])
+        #     folder = list(folder)[0]
+        #     if folder is not None:
+        #         print(f"title: {folder} ")
+        #         params = {
+        #             'title': 'Personal Goals',
+        #             'folder': folder,
+        #             'body': 'Discuss project updates, assign tasks, and review deadlines.',
+        #         }
 
 
         # if task_value == 'MarkorCreateNote':
