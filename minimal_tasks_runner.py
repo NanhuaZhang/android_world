@@ -460,6 +460,96 @@ def _main() -> None:
         #             'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
         #         }
 
+        if task_value == 'SportsTrackerActivitiesCountForWeek':
+            category= extract_from_template(
+                "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
+                row['instruction'])
+            category = list(category)[0]
+            if category is not None:
+                print(f"category: {category} ")
+                params = {
+                    'start_date': 'October 10 2023',
+                    'category': category,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'Slow day',
+                    'activity_description': 'Wandered off the beaten path.'
+                }
+
+        if task_value == 'SportsTrackerActivitiesOnDate':
+            date= extract_from_template(
+                "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
+            row['instruction'])
+            date = list(date)[0]
+            if date is not None:
+                print(f"date: {date} ")
+                params = {
+                    'category': 'cycling',
+                    'date': date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'Skill work',
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
+
+        if task_value == 'SportsTrackerActivityDuration':
+            category,date= extract_from_template(
+                "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
+            row['instruction'])
+            if date is not None and category is not None:
+                print(f"date: {date} ")
+                params = {
+                    'category': category,
+                    'date': date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'Skill work',
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
+
+        if task_value == 'SportsTrackerLongestDistanceActivity':
+            category= extract_from_template(
+                "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
+            row['instruction'])
+            category = list(category)[0]
+            if category is not None:
+                print(f"category: {category} ")
+                params = {
+                    'category': category,
+                    'start_date': "October 14 2023",
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'Skill work',
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
+
+        if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
+            category,start_date,end_date= extract_from_template(
+                "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
+            row['instruction'])
+            if category is not None and start_date is not None and end_date is not None:
+                print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
+                params = {
+                    'category': category,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'Skill work',
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
+
+
         if task_value == 'NotesRecipeIngredientCount':
             ingredient, title= extract_from_template(
                 "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",

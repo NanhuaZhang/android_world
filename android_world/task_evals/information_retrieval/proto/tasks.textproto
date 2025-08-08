@@ -2277,7 +2277,7 @@ tasks {
 tasks {
   name: "SportsTrackerActivityDuration"
   prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer."
-  complexity: 1
+  complexity: 2
   relevant_state {
     state {
       sports_activity_app {
@@ -2487,7 +2487,7 @@ tasks {
 tasks {
   name: "SportsTrackerLongestDistanceActivity"
   prompt: "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer."
-  complexity: 1
+  complexity: 2
   relevant_state {
     state {
       sports_activity_app {
@@ -2931,7 +2931,7 @@ tasks {
 tasks {
   name: "SportsTrackerTotalDistanceForCategoryOverInterval"
   prompt: "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer."
-  complexity: 2
+  complexity: 3
   relevant_state {
     state {
       sports_activity_app {
