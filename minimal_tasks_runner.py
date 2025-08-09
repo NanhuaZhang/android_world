@@ -466,8 +466,6 @@ def _main() -> None:
         if len(retry_task) >0 and str(row['id']) not in retry_task:
             continue
 
-        if row['id'] < 640:
-            continue
 
         # if task_value == 'ContactsAddContact':
         #     name, number = extract_name_and_number(row['instruction'])
