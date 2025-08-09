@@ -130,7 +130,7 @@ _AGENT_TYPE = flags.DEFINE_string(
 
 _MAX_STEP_COUNT = flags.DEFINE_integer(
     'max_step_count',
-    30,
+    180,
     'The max step count of the agent.',
 )
 
@@ -374,46 +374,51 @@ def detect_recipe_type(text: str) -> str | None:
     
     return None
 
-def extract_recipe_add_params(text):
-    type = detect_recipe_type(text)
+def parse_recipes(text: str):
     recipes = []
+    recipe_type = None
 
-    if type == "csv":
-        lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
-        header = lines[0].split("|")
-        for line in lines[1:]:
-            parts = line.split("|")
-            if len(parts) == len(header):
-                recipes.append(dict(zip(header, parts)))
+    # 先尝试查找格式2的 Recipe: 开头的多条记录
+    pattern2 = re.compile(
+        r"Recipe:\s*(.*?)\n\s*description:\s*(.*?)\n\s*servings:\s*(.*?)\n\s*preparationTime:\s*(.*?)\n\s*ingredients:\s*(.*?)\n\s*directions:\s*(.*?)(?=\nRecipe:|\Z)",
+        re.DOTALL
+    )
+    for match in pattern2.finditer(text):
+        recipe = {
+            "title": match.group(1).strip(),
+            "description": match.group(2).strip(),
+            "servings": match.group(3).strip(),
+            "preparationTime": match.group(4).strip(),
+            "ingredients": match.group(5).strip(),
+            "directions": match.group(6).strip(),
+        }
+        recipes.append(recipe)
+        recipe_type = 'text_block'
 
-    elif type == "text_block":
-        blocks = re.split(r'\n\s*\n', text.strip())  # 按空行分隔每个食谱
-        for block in blocks:
-            recipe_data = {
-                "title": None,
-                "description": None,
-                "servings": None,
-                "preparationTime": None,
-                "ingredients": None,
-                "directions": None
-            }
-            for line in block.strip().splitlines():
-                line = line.strip()
-                if line.startswith("Recipe:"):
-                    recipe_data["title"] = line.replace("Recipe:", "").strip()
-                elif line.lower().startswith("description:"):
-                    recipe_data["description"] = line.split(":", 1)[1].strip()
-                elif line.lower().startswith("servings:"):
-                    recipe_data["servings"] = line.split(":", 1)[1].strip()
-                elif line.lower().startswith("preparationtime:"):
-                    recipe_data["preparationTime"] = line.split(":", 1)[1].strip()
-                elif line.lower().startswith("ingredients:"):
-                    recipe_data["ingredients"] = line.split(":", 1)[1].strip()
-                elif line.lower().startswith("directions:"):
-                    recipe_data["directions"] = line.split(":", 1)[1].strip()
-            recipes.append(recipe_data)
+    # 再尝试查找格式1的表格形式
+    if "title|description|servings|preparationTime|ingredients|directions" in text:
+        lines = text.strip().splitlines()
+        try:
+            header_index = lines.index("title|description|servings|preparationTime|ingredients|directions")
+            for line in lines[header_index + 1:]:
+                if not line.strip():
+                    continue
+                parts = line.split("|")
+                if len(parts) == 6:
+                    recipe = {
+                        "title": parts[0].strip(),
+                        "description": parts[1].strip(),
+                        "servings": parts[2].strip(),
+                        "preparationTime": parts[3].strip(),
+                        "ingredients": parts[4].strip(),
+                        "directions": parts[5].strip(),
+                    }
+                    recipes.append(recipe)
+                    recipe_type = 'csv'
+        except ValueError:
+            pass  # 找不到表头，忽略
 
-    return type, recipes
+    return recipe_type, recipes
     
 
 def extract_expense_delete_details(instruction):
@@ -459,6 +464,9 @@ def _main() -> None:
         params = None
 
         if len(retry_task) >0 and str(row['id']) not in retry_task:
+            continue
+
+        if row['id'] < 640:
             continue
 
         # if task_value == 'ContactsAddContact':
@@ -509,109 +517,180 @@ def _main() -> None:
         #             'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
         #         }
 
-        if task_value == 'SportsTrackerActivitiesCountForWeek':
-            category= extract_from_template(
-                "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
-                row['instruction'])
-            category = list(category)[0]
-            if category is not None:
-                print(f"category: {category} ")
-                params = {
-                    'start_date': 'October 10 2023',
-                    'category': category,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'Slow day',
-                    'activity_description': 'Wandered off the beaten path.'
-                }
+        # if task_value == 'TasksDueNextWeek':
+        #     extract_from_template(
+        #         "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer.",
+        #         row['instruction'])
+        #
+        #     print(f"TasksDueNextWeek ")
+        #     params = {}
+        #
+        # if task_value == 'TasksHighPriorityTasks':
+        #     extract_from_template(
+        #         "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",row['instruction'])
+        #     params = {
+        #     }
+        #
+        # if task_value == 'TasksHighPriorityTasksDueOnDate':
+        #     date= extract_from_template(
+        #         "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Team Sync-Up Meeting',
+        #             'date': date,
+        #             'time': '5:00pm',
+        #         }
+        #
+        # if task_value == 'TasksDueOnDate':
+        #     date= extract_from_template(
+        #         "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Attend networking event',
+        #             'date': date,
+        #             'notes': 'Complete paperwork.',
+        #             'importance': '0'
+        #         }
+        #
+        # if task_value == 'TasksIncompleteTasksOnDate':
+        #     date= extract_from_template(
+        #         "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Schedule team meeting',
+        #             'date': date,
+        #             'notes': 'Remember to review ahead of time.',
+        #             'time': '9:45am',
+        #             'importance': '2'
+        #         }
+        #
+        # if task_value == 'TasksCompletedTasksForDate':
+        #     date= extract_from_template(
+        #         "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Review code changes',
+        #             'date': date,
+        #             'notes': 'This is high priority.',
+        #             'completed_date': 'October 15 2023',
+        #             'time': '11:00am',
+        #         }
+        #
+        # if task_value == 'SportsTrackerActivitiesCountForWeek':
+        #     category= extract_from_template(
+        #         "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
+        #         row['instruction'])
+        #     category = list(category)[0]
+        #     if category is not None:
+        #         print(f"category: {category} ")
+        #         params = {
+        #             'start_date': 'October 10 2023',
+        #             'category': category,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'Slow day',
+        #             'activity_description': 'Wandered off the beaten path.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerActivitiesOnDate':
+        #     date= extract_from_template(
+        #         "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
+        #     row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'category': 'cycling',
+        #             'date': date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'Skill work',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerActivityDuration':
+        #     category,date= extract_from_template(
+        #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
+        #     row['instruction'])
+        #     if date is not None and category is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'category': category,
+        #             'date': date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'Skill work',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerLongestDistanceActivity':
+        #     category= extract_from_template(
+        #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
+        #     row['instruction'])
+        #     category = list(category)[0]
+        #     if category is not None:
+        #         print(f"category: {category} ")
+        #         params = {
+        #             'category': category,
+        #             'start_date': "October 14 2023",
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'Skill work',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
+        #     category,start_date,end_date= extract_from_template(
+        #         "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
+        #     row['instruction'])
+        #     if category is not None and start_date is not None and end_date is not None:
+        #         print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
+        #         params = {
+        #             'category': category,
+        #             'start_date': start_date,
+        #             'end_date': end_date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'Skill work',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
 
-        if task_value == 'SportsTrackerActivitiesOnDate':
-            date= extract_from_template(
-                "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
-            row['instruction'])
-            date = list(date)[0]
-            if date is not None:
-                print(f"date: {date} ")
-                params = {
-                    'category': 'cycling',
-                    'date': date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'Skill work',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
 
-        if task_value == 'SportsTrackerActivityDuration':
-            category,date= extract_from_template(
-                "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
-            row['instruction'])
-            if date is not None and category is not None:
-                print(f"date: {date} ")
-                params = {
-                    'category': category,
-                    'date': date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'Skill work',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-
-        if task_value == 'SportsTrackerLongestDistanceActivity':
-            category= extract_from_template(
-                "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
-            row['instruction'])
-            category = list(category)[0]
-            if category is not None:
-                print(f"category: {category} ")
-                params = {
-                    'category': category,
-                    'start_date': "October 14 2023",
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'Skill work',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-
-        if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
-            category,start_date,end_date= extract_from_template(
-                "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
-            row['instruction'])
-            if category is not None and start_date is not None and end_date is not None:
-                print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
-                params = {
-                    'category': category,
-                    'start_date': start_date,
-                    'end_date': end_date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'Skill work',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-
-
-        if task_value == 'NotesRecipeIngredientCount':
-            ingredient, title= extract_from_template(
-                "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",
-                row['instruction'])
-            if title is not None and ingredient is not None:
-                print(f"title: {title},ingredient{ingredient} ")
-                ingredient_quantity = '2 cups'
-                params = {
-                    'title': title,
-                    'ingredient_quantity': ingredient_quantity,
-                    'ingredient': ingredient,
-                    'body': f'Ingredients:\n- 1 cup all-purpose flour\n- 1/2 cup granulated sugar\n- {ingredient_quantity} {ingredient}\n- 1 teaspoon baking powder\n- 2 tablespoons unsalted butter\n- 1/4 teaspoon salt\n\nInstructions:\n1. Preheat oven to 350°F (175°C).\n2. In a mixing bowl, combine all-purpose flour, granulated sugar, and baking powder.\n3. Add unsalted butter and salt, mixing until well combined.\n4. Grease a baking dish and pour the mixture into it.\n5. Bake in preheated oven for 25-30 minutes, or until golden brown.\n6. Let cool for a few minutes before serving.\n',
-                }
+        # if task_value == 'NotesRecipeIngredientCount':
+        #     ingredient, title= extract_from_template(
+        #         "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",
+        #         row['instruction'])
+        #     if title is not None and ingredient is not None:
+        #         print(f"title: {title},ingredient{ingredient} ")
+        #         ingredient_quantity = '2 cups'
+        #         params = {
+        #             'title': title,
+        #             'ingredient_quantity': ingredient_quantity,
+        #             'ingredient': ingredient,
+        #             'body': f'Ingredients:\n- 1 cup all-purpose flour\n- 1/2 cup granulated sugar\n- {ingredient_quantity} {ingredient}\n- 1 teaspoon baking powder\n- 2 tablespoons unsalted butter\n- 1/4 teaspoon salt\n\nInstructions:\n1. Preheat oven to 350°F (175°C).\n2. In a mixing bowl, combine all-purpose flour, granulated sugar, and baking powder.\n3. Add unsalted butter and salt, mixing until well combined.\n4. Grease a baking dish and pour the mixture into it.\n5. Bake in preheated oven for 25-30 minutes, or until golden brown.\n6. Let cool for a few minutes before serving.\n',
+        #         }
 
         # if task_value == 'NotesTodoItemCount':
         #     folder= extract_from_template(
@@ -1109,12 +1188,8 @@ def _main() -> None:
         #     elif edit_type == "replace":
         #       params["replace_text"] = param2
 
-        if task_value == 'RecipeAddMultipleRecipes' or task_value == 'RecipeAddSingleRecipe':
-            text_repr = extract_from_template(
-                "Add the following recipes into the Broccoli app:\n{text_repr}",
-                row['instruction']
-            )
-            recipe_type, recipes = extract_recipe_add_params(list(text_repr)[0])
+        if task_value == 'RecipeAddSingleRecipe':
+            recipe_type, recipes = parse_recipes(row['instruction'])
             if recipe_type is not None and len(recipes) > 0:
                 target_rows: list[sqlite_schema_utils.Recipe] = []
                 for recipe in recipes:
