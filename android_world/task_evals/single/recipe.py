@@ -420,7 +420,7 @@ class RecipeAddSingleRecipe(_RecipeAddMultipleRecipes):
 class RecipeAddMultipleRecipes(_RecipeAddMultipleRecipes):
   """Task to delete multiple recipes in Broccoli Recipe App."""
 
-  complexity = 6
+  complexity = 8
   n_rows = 3
   n_rows_noise = 10
 

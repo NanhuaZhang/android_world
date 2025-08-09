@@ -3,6 +3,10 @@ import json
 import os
 import re
 
+from parse import parse
+
+from minimal_tasks_runner import extract_from_template, parse_recipes
+
 
 def getKeys():
     with open('trajectory_mapping.json', 'r', encoding='utf-8') as f:
@@ -16,4 +20,7 @@ def getKeys():
 
 
 if __name__ == '__main__':
-    print(re.search(r"\.md$", '2023_02_09_busy_pig.txt'))
+    print(parse_recipes("""Add the following recipes into the Broccoli app:
+title|description|servings|preparationTime|ingredients|directions
+Chickpea Vegetable Soup|An ideal recipe for experimenting with different flavors and ingredients.|3-4 servings|4 hrs|flexible ingredients|Saut?© onions, carrots, and celery, add broth, canned tomatoes, and chickpeas. Simmer with spinach and seasonings. Feel free to substitute with ingredients you have on hand."
+"""))
