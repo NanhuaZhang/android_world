@@ -29,7 +29,7 @@ class FilesMoveFile(task_eval.TaskEval):
   """Task for checking that a file has been moved."""
 
   app_names = ("files",)
-  complexity = 2
+  complexity = 3
   schema = file_validators.MoveFile.schema
   template = (
       "Move the file {file_name} from {source_folder} within the"

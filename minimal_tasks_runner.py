@@ -45,6 +45,7 @@ import subprocess
 
 from android_world.task_evals.single.calendar import calendar_utils
 from android_world.task_evals.single.calendar.calendar import generate_noise_events, _REPEAT_INTERVALS
+from android_world.task_evals.single.retro_music import _SONGS, _generate_playlist_name
 from android_world.task_evals.utils import sqlite_schema_utils
 from android_world.utils.datetime_utils import create_random_october_2023_unix_ts, _create_unix_ts
 from android_world.task_evals.single.vlc import generate_file_name
@@ -169,6 +170,19 @@ def extract_sms_info(instruction):
 
     return number, message
 
+def extract_sms_number(instruction):
+    # 提取电话号码（+ 和数字）
+    number_match = re.search(r'\+?\d{10,}', instruction)
+    number = number_match.group() if number_match else None
+
+    return number
+
+def extract_sms_message(instruction):
+    # 提取短信内容（在 message: 后）
+    message_match = re.search(r'message:\s*(.+)', instruction)
+    message = message_match.group(1).strip() if message_match else None
+
+    return message
 
 def extract_contact_details(instruction):
     first = re.search(r'First Name:\s*([A-Za-z]+)', instruction)
@@ -326,6 +340,23 @@ def extract_vlc_playlist_create(instruction):
 
     return playlist_name, files
 
+def extract_retro_playlist_create(instruction):
+    # 提取播放列表名称
+    playlist_name_match = re.search(r'Create a playlist in Retro Music titled "([^"]+)"', instruction)
+    playlist_name = playlist_name_match.group(1) if playlist_name_match else None
+
+    # 提取文件列表
+    files_match = re.search(r'in order: (.+)', instruction)
+    files = files_match.group(1).split(', ') if files_match else []
+
+    return playlist_name, files
+
+def extract_retro_play(instruction):
+    # 提取文件列表
+    files_match = re.search(r'Add the following songs, in order, (.+)', instruction)
+    files = files_match.group(1).split(', ') if files_match else []
+
+    return files
 
 def extract_expense_add_multiple(instruction):
     # 定义正则表达式
@@ -1073,6 +1104,26 @@ def _main() -> None:
         #             'message': message,
         #             'number': number
         #         }
+        
+        # if task_value == 'SimpleSmsSendClipboardContent':
+        #     number = extract_sms_number(row['instruction'])
+        #     message = random.choice(user_data_generation.RANDOM_SENTENCES)
+        #     if number is not None:
+        #         print(f"Number: {number}")
+        #         params = {
+        #             'message': message,
+        #             'number': number
+        #         }
+
+        # if task_value == 'SimpleSmsReplyMostRecent':
+        #     message = extract_sms_message(row['instruction'])
+        #     number = user_data_generation.generate_random_number()
+        #     if message is not None:
+        #         print(f"message: {message}")
+        #         params = {
+        #             'message': message,
+        #             'number': number
+        #         }
 
         # if task_value == 'FilesDeleteFile':
         #     file_name, subfolder = extract_file_delete(row['instruction'])
@@ -1096,6 +1147,60 @@ def _main() -> None:
         #             "destination_folder": destination_folder,
         #             "noise_candidates": noise_candidates,
         #         }
+        
+        # if task_value == 'RetroCreatePlaylist':
+        #     playlist_name, names = extract_retro_playlist_create(row['instruction'])
+        #     if playlist_name is not None and names is not None:
+        #         print(f'playlist_name: {playlist_name}, names: {names}')
+        #         files = [f'{name}.mp3' for name in names]
+        #         params = {
+        #             'playlist_name': playlist_name,
+        #             'files': files,
+        #             'noise_files': [],
+        #         }
+
+        # if task_value == 'RetroPlayingQueue':
+        #     names = extract_retro_play(row['instruction'].replace(' to my playing queue in Retro music.', ''))
+        #     if names is not None:
+        #         print(f'names: {names}')
+        #         playlist_name = _generate_playlist_name()
+        #         files = [f'{name}.mp3' for name in names]
+        #         params = {
+        #             'playlist_name': playlist_name,
+        #             'files': files,
+        #             'noise_files': [],
+        #         }
+        
+        if task_value == 'RetroPlaylistDuration':
+            playlist_name, = extract_from_template(
+                'Create a playlist in Retro Music titled "{playlist_name}" with a duration between 45 and 50 minutes using the provided songs.',
+                row['instruction'],
+            )
+            if playlist_name is not None:
+                print(f'playlist_name: {playlist_name}')
+                files = ['Beyond the Horizon.mp3', 'Bright Lights.mp3'] #固定
+                random_files = [f'{name}.mp3' for name in random.sample(_SONGS, 15)]
+                noise_files = []
+                for name in random_files:
+                    if name not in files:
+                        noise_files.append(name)
+                print(f'noise files: {noise_files}')
+                params = {
+                    'playlist_name': playlist_name,
+                    'files': files,
+                    'noise_files': noise_files,
+                }
+        
+        if task_value == 'RetroSavePlaylist':
+            playlist_name, names = extract_retro_playlist_create(row['instruction'].replace('. Then export the playlist to the Downloads directory on the device.', ''))
+            if playlist_name is not None and names is not None:
+                print(f'playlist_name: {playlist_name}, names: {names}')
+                files = [f'{name}.mp3' for name in names]
+                params = {
+                    'playlist_name': playlist_name,
+                    'files': files,
+                    'noise_files': [],
+                }
 
         # if task_value == 'VlcCreatePlaylist':
         #     playlist_name, files = extract_vlc_playlist_create(row['instruction'])
