@@ -497,7 +497,340 @@ def _main() -> None:
         if len(retry_task) >0 and str(row['id']) not in retry_task:
             continue
 
-        # if task_value == 'ContactsAddContact':
+
+        # if task_value == 'RecipeDeleteMultipleRecipesWithConstraint':
+        #     ingredient = extract_from_template('Delete the recipes from Broccoli app that use {ingredient} in the'
+        # ' directions.',row['instruction'])
+        #     ingredient = list(ingredient)[0]
+        #     if ingredient is not None:
+        #         noise = sqlite_schema_utils.get_random_items(
+        #             6,
+        #             _generate_random_recipe,
+        #             replacement=False,
+        #             filter_fn=lambda r: ingredient not in r.directions.lower(),
+        #         )
+        #         n_rows = 3
+        #         targets = []
+        #         while n_rows > 0:
+        #             try:
+        #                 targets = sqlite_schema_utils.get_random_items(
+        #                     n_rows,
+        #                     _generate_random_recipe,
+        #                     replacement=False,
+        #                     filter_fn=lambda r: ingredient in r.directions.lower(),
+        #                 )
+        #                 break
+        #             except ValueError:
+        #                 n_rows -= 1
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: targets,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise,
+        #             'ingredient': ingredient,
+        #         }
+
+        # if task_value == 'RecipeDeleteMultipleRecipesWithNoise':
+        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
+        #     titles = list(titles)[0]
+        #     if titles is None:
+        #         continue
+        #
+        #     titles = titles.split(',')
+        #     if len(titles) > 0:
+        #         target_rows: list[sqlite_schema_utils.Recipe] = []
+        #         noise_rows: list[sqlite_schema_utils.Recipe] = []
+        #         for title in titles:
+        #             candidate = _generate_random_recipe()
+        #             candidate = dataclasses.replace(candidate, title=title)
+        #             target_rows.append(candidate)
+        #
+        #         while len(noise_rows) < 9:
+        #             candidate = _generate_random_recipe()
+        #             if not any([candidate.title == r.title for r in target_rows]) and not any([candidate.title == r.title for r in noise_rows]):
+        #                 noise_rows.append(candidate)
+        #
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: target_rows,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+        #         }
+
+        # if task_value == 'RecipeDeleteMultipleRecipes':
+        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
+        #     titles = list(titles)[0]
+        #     if titles is None:
+        #         continue
+        #
+        #     titles = titles.split(',')
+        #     if len(titles) > 0:
+        #         target_rows: list[sqlite_schema_utils.Recipe] = []
+        #         for title in titles:
+        #             candidate = _generate_random_recipe()
+        #             candidate = dataclasses.replace(candidate, title=title)
+        #             target_rows.append(candidate)
+        #
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: target_rows,
+        #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+        #         }
+
+        # if task_value == 'RecipeDeleteSingleRecipe':
+        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
+        #     titles = list(titles)[0]
+        #     if titles is None:
+        #         continue
+        #
+        #     titles = titles.split(',')
+        #     if len(titles) > 0:
+        #         target_rows: list[sqlite_schema_utils.Recipe] = []
+        #         for title in titles:
+        #             candidate = _generate_random_recipe()
+        #             candidate = dataclasses.replace(candidate, title=title)
+        #             target_rows.append(candidate)
+        #
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: target_rows,
+        #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+        #         }
+
+        # if task_value == 'RecipeDeleteSingleWithRecipeWithNoise':
+        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
+        #     titles = list(titles)[0]
+        #     if titles is None:
+        #         continue
+        #
+        #     titles = titles.split(',')
+        #     if len(titles) > 0:
+        #         target_rows: list[sqlite_schema_utils.Recipe] = []
+        #         noise_rows: list[sqlite_schema_utils.Recipe] = []
+        #         for title in titles:
+        #             candidate = _generate_random_recipe()
+        #             candidate = dataclasses.replace(candidate, title=title)
+        #             target_rows.append(candidate)
+        #
+        #         while len(noise_rows) < 29:
+        #             candidate = _generate_random_recipe()
+        #             if not any([candidate.title == r.title for r in target_rows]) and not any([candidate.title == r.title for r in noise_rows]):
+        #                 noise_rows.append(candidate)
+        #
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: target_rows,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+        #         }
+
+
+        if task_value == 'RecipeAddMultipleRecipes' or task_value == 'RecipeAddSingleRecipe':
+            recipe_type, recipes = parse_recipes(row['instruction'])
+            if recipe_type is not None and len(recipes) > 0:
+                target_rows: list[sqlite_schema_utils.Recipe] = []
+                for recipe in recipes:
+                    if recipe['title'] is not None and recipe['description'] is not None and recipe['servings'] is not None and recipe['preparationTime'] is not None and recipe['ingredients'] is not None and recipe['directions'] is not None:
+                        target_rows.append(sqlite_schema_utils.Recipe(
+                            recipe['title'],
+                            recipe['description'],
+                            recipe['servings'],
+                            recipe['preparationTime'],
+                            '',
+                            recipe['ingredients'],
+                            recipe['directions'],
+                        ))
+                if task_value == 'RecipeAddSingleRecipe':
+                  noise_rows = []
+                else:
+                  noise_rows = sqlite_schema_utils.get_random_items(
+                    5,
+                    _generate_random_recipe,
+                    replacement=False,
+                    filter_fn=lambda r: any([r.title != t.title for t in target_rows]),
+                )
+                params = {
+                    sqlite_validators.ROW_OBJECTS: target_rows,
+                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+                    "text_representation_type": recipe_type,
+                }
+
+        if params is None:
+            continue
+
+        env.reset(go_home=True)
+
+        task = task_type(params)
+        task.initialize_task(env)
+        openai_agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
+        openai4o_agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
+        doubao_agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        agent = openai_agent if _AGENT_TYPE.value == 'openai' else doubao_agent
+        if _AGENT_TYPE.value == 'openai4o':
+            agent = openai4o_agent
+
+        print('Goal: ' + str(task.goal))
+        is_done = False
+        for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
+            response = agent.step(task.goal)
+            if response.done:
+                is_done = True
+                break
+        agent_successful = is_done and task.is_successful(env) == 1
+
+        # 任务跑完后，保存执行历史
+        save_task_history(agent, str(row['id']), task.goal, agent_successful)
+
+        print(
+            f'{"Task Successful ✅" if agent_successful else "Task Failed ❌"};'
+            f' {task.goal}'
+        )
+
+    env.close()
+
+
+def ui_elements_to_xml(ui_elements: list, filename: str):
+    """
+    将 UIElement 列表保存为 XML 文件。
+    """
+    root = ET.Element("UIElements")
+    for idx, element in enumerate(ui_elements):
+        el = ET.SubElement(root, "Element", index=str(idx))
+        for k, v in element.__dict__.items():
+            if isinstance(v, (str, int, float, bool)):
+                ET.SubElement(el, k).text = str(v)
+    tree = ET.ElementTree(root)
+    tree.write(filename, encoding="utf-8", xml_declaration=True)
+
+
+def get_emulator_screen_size():
+    try:
+        # Execute adb command to get the display metrics
+        output = subprocess.check_output(["adb", "shell", "wm", "size"])
+        # Decode the output from bytes to string
+        output = output.decode("utf-8").strip()
+        # Extract the screen size from the output
+        screen_size = output.split(": ")[1]
+        width, height = map(int, screen_size.split('x'))
+        return [width, height]
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e}")
+        return None
+
+
+def clean_element_number_text(text):
+    # 替换 "UI element {number}" 为 "this element"
+    cleaned_text = re.sub(r'UI element \d+', 'this element', text)
+    # 删除 "(index {number})"
+    cleaned_text = re.sub(r'\(index \d+\)', '', cleaned_text)
+    return cleaned_text.strip()
+
+
+def save_task_history(agent, task_id: str, task_goal: str, success: bool, output_dir: str = "./task_histories"):
+    """
+    将 agent.history 中每一步的 action、reason、summary 及截图
+    编码为 base64，输出到 JSON 文件。
+    """
+    # 为每个 task 单独建一个文件夹
+    task_dir = os.path.join(output_dir, task_id)
+
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(task_dir, exist_ok=True)
+    trajectory = []
+    prompt_tokens = []
+    completion_tokens = []
+
+    screen_size = get_emulator_screen_size()
+    if screen_size is None:
+        screen_size = [1080, 2480]
+
+    export = {
+        'os': 'Android 13.0',
+        "episode_id": task_id,
+        "screen_resolution": screen_size,
+        "instruction": task_goal,
+        "trajectory": trajectory,
+        "trajectory_type": 2
+    }
+
+    exist_retry_step = False
+
+    for idx, step in enumerate(agent.history, start=1):
+        reason, action = m3a_utils.parse_reason_action_output(step.get("action_output"))
+        prompt_tokens.append(step.get('prompt_tokens'))
+        completion_tokens.append(step.get('completion_tokens'))
+
+        rec = {
+            "step_id": idx,
+            "action": step.get("action"),
+            "think": clean_element_number_text(reason),
+            # "summary": step.get("summary"),
+            "action_inputs": {
+                "start_coords": step.get("start_coords"),
+                "end_coords": step.get("end_coords"),
+                "direction": step.get("direction"),
+                "keycode": step.get("keycode"),
+                "content": step.get("content"),
+                'status': step.get("status"),
+                'app_name': step.get("app_name")
+            }
+        }
+
+        # 将 reason 转换为小写
+        reason_lower = reason.lower()
+        # 检查 reason_lower 是否包含 RETRY_KEYWORDS 中的任意字符
+        if any(keyword in reason_lower for keyword in RETRY_KEYWORDS):
+            exist_retry_step = True
+
+        if step.get("action") == "status":
+            if success:
+                if exist_retry_step:
+                    export['trajectory_type'] = 1
+                else:
+                    export['trajectory_type'] = 0
+
+        # 两张截图：before/after
+        for key in ("before_screenshot", 'before_screenshot_mark'):
+            img_array = step.get(key)
+            if img_array is not None:
+                filename = f"{idx}.png"  # e.g. before_screenshot_1.png
+                if key == "before_screenshot_mark":
+                    filename = f"{idx}-label.png"
+                file_path = os.path.join(task_dir, filename)
+                # 将 ndarray 转为 PIL 并保存
+                Image.fromarray(img_array.astype("uint8")).save(file_path)
+                if key == "before_screenshot_mark":
+                    rec['observation_mark'] = filename
+                else:
+                    rec['observation'] = filename
+        trajectory.append(rec)
+
+        # 保存页面结构 XML
+        for key in ("before_element_list", ''):
+            elements = step.get(key)
+            if elements is not None:
+                filename = f"{idx}.xml"
+                file_path = os.path.join(task_dir, filename)
+                ui_elements_to_xml(elements, file_path)
+                rec['xml'] = filename
+
+    out_path = os.path.join(task_dir, "task.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(export, f, ensure_ascii=False, indent=2)
+    print(f"✅ Task history saved to {out_path}")
+    with open('cost_token', "w", encoding="utf-8") as f:
+        json.dump({
+            'prompt_tokens': sum(prompt_tokens),
+            'prompt_tokens_avg': sum(prompt_tokens) / len(prompt_tokens),
+            'completion_tokens': sum(completion_tokens),
+            'completion_tokens_avg': sum(completion_tokens) / len(completion_tokens)
+        }, f, ensure_ascii=False, indent=2)
+
+    print('消耗prompt_tokens Token：', sum(prompt_tokens))
+    print('消耗completion_tokens Token：', sum(completion_tokens))
+
+
+def main(argv: Sequence[str]) -> None:
+    del argv
+    _main()
+
+
+if __name__ == '__main__':
+    app.run(main)
+
+        # if task_value == 'ContactsAd  dContact':
         #     name, number = extract_name_and_number(row['instruction'])
         #     if name is not None and number is not None:
         #         print(f"Name: {name}, Number: {number}")
@@ -1171,36 +1504,36 @@ def _main() -> None:
         #             'noise_files': [],
         #         }
         
-        if task_value == 'RetroPlaylistDuration':
-            playlist_name, = extract_from_template(
-                'Create a playlist in Retro Music titled "{playlist_name}" with a duration between 45 and 50 minutes using the provided songs.',
-                row['instruction'],
-            )
-            if playlist_name is not None:
-                print(f'playlist_name: {playlist_name}')
-                files = ['Beyond the Horizon.mp3', 'Bright Lights.mp3'] #固定
-                random_files = [f'{name}.mp3' for name in random.sample(_SONGS, 15)]
-                noise_files = []
-                for name in random_files:
-                    if name not in files:
-                        noise_files.append(name)
-                print(f'noise files: {noise_files}')
-                params = {
-                    'playlist_name': playlist_name,
-                    'files': files,
-                    'noise_files': noise_files,
-                }
-        
-        if task_value == 'RetroSavePlaylist':
-            playlist_name, names = extract_retro_playlist_create(row['instruction'].replace('. Then export the playlist to the Downloads directory on the device.', ''))
-            if playlist_name is not None and names is not None:
-                print(f'playlist_name: {playlist_name}, names: {names}')
-                files = [f'{name}.mp3' for name in names]
-                params = {
-                    'playlist_name': playlist_name,
-                    'files': files,
-                    'noise_files': [],
-                }
+        # if task_value == 'RetroPlaylistDuration':
+        #     playlist_name, = extract_from_template(
+        #         'Create a playlist in Retro Music titled "{playlist_name}" with a duration between 45 and 50 minutes using the provided songs.',
+        #         row['instruction'],
+        #     )
+        #     if playlist_name is not None:
+        #         print(f'playlist_name: {playlist_name}')
+        #         files = ['Beyond the Horizon.mp3', 'Bright Lights.mp3'] #固定
+        #         random_files = [f'{name}.mp3' for name in random.sample(_SONGS, 15)]
+        #         noise_files = []
+        #         for name in random_files:
+        #             if name not in files:
+        #                 noise_files.append(name)
+        #         print(f'noise files: {noise_files}')
+        #         params = {
+        #             'playlist_name': playlist_name,
+        #             'files': files,
+        #             'noise_files': noise_files,
+        #         }
+        #
+        # if task_value == 'RetroSavePlaylist':
+        #     playlist_name, names = extract_retro_playlist_create(row['instruction'].replace('. Then export the playlist to the Downloads directory on the device.', ''))
+        #     if playlist_name is not None and names is not None:
+        #         print(f'playlist_name: {playlist_name}, names: {names}')
+        #         files = [f'{name}.mp3' for name in names]
+        #         params = {
+        #             'playlist_name': playlist_name,
+        #             'files': files,
+        #             'noise_files': [],
+        #         }
 
         # if task_value == 'VlcCreatePlaylist':
         #     playlist_name, files = extract_vlc_playlist_create(row['instruction'])
@@ -1289,216 +1622,3 @@ def _main() -> None:
         #       params["footer"] = param2
         #     elif edit_type == "replace":
         #       params["replace_text"] = param2
-
-        if task_value == 'RecipeAddSingleRecipe':
-            recipe_type, recipes = parse_recipes(row['instruction'])
-            if recipe_type is not None and len(recipes) > 0:
-                target_rows: list[sqlite_schema_utils.Recipe] = []
-                for recipe in recipes:
-                    if recipe['title'] is not None and recipe['description'] is not None and recipe['servings'] is not None and recipe['preparationTime'] is not None and recipe['ingredients'] is not None and recipe['directions'] is not None:
-                        target_rows.append(sqlite_schema_utils.Recipe(
-                            recipe['title'],
-                            recipe['description'],
-                            recipe['servings'],
-                            recipe['preparationTime'],
-                            '',
-                            recipe['ingredients'],
-                            recipe['directions'],
-                        ))
-                if task_value == 'RecipeAddSingleRecipe':
-                  noise_rows = []
-                else:
-                  noise_rows = sqlite_schema_utils.get_random_items(
-                    5,
-                    _generate_random_recipe,
-                    replacement=False,
-                    filter_fn=lambda r: any([r.title != t.title for t in target_rows]),
-                )
-                params = {
-                    sqlite_validators.ROW_OBJECTS: target_rows,
-                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-                    "text_representation_type": recipe_type,
-                }
-
-        if params is None:
-            continue
-
-        env.reset(go_home=True)
-
-        task = task_type(params)
-        task.initialize_task(env)
-        openai_agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
-        openai4o_agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
-        doubao_agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        agent = openai_agent if _AGENT_TYPE.value == 'openai' else doubao_agent
-        if _AGENT_TYPE.value == 'openai4o':
-            agent = openai4o_agent
-
-        print('Goal: ' + str(task.goal))
-        is_done = False
-        for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
-            response = agent.step(task.goal)
-            if response.done:
-                is_done = True
-                break
-        agent_successful = is_done and task.is_successful(env) == 1
-
-        # 任务跑完后，保存执行历史
-        save_task_history(agent, str(row['id']), task.goal, agent_successful)
-
-        print(
-            f'{"Task Successful ✅" if agent_successful else "Task Failed ❌"};'
-            f' {task.goal}'
-        )
-
-    env.close()
-
-
-def ui_elements_to_xml(ui_elements: list, filename: str):
-    """
-    将 UIElement 列表保存为 XML 文件。
-    """
-    root = ET.Element("UIElements")
-    for idx, element in enumerate(ui_elements):
-        el = ET.SubElement(root, "Element", index=str(idx))
-        for k, v in element.__dict__.items():
-            if isinstance(v, (str, int, float, bool)):
-                ET.SubElement(el, k).text = str(v)
-    tree = ET.ElementTree(root)
-    tree.write(filename, encoding="utf-8", xml_declaration=True)
-
-
-def get_emulator_screen_size():
-    try:
-        # Execute adb command to get the display metrics
-        output = subprocess.check_output(["adb", "shell", "wm", "size"])
-        # Decode the output from bytes to string
-        output = output.decode("utf-8").strip()
-        # Extract the screen size from the output
-        screen_size = output.split(": ")[1]
-        width, height = map(int, screen_size.split('x'))
-        return [width, height]
-    except subprocess.CalledProcessError as e:
-        print(f"Error occurred: {e}")
-        return None
-
-
-def clean_element_number_text(text):
-    # 替换 "UI element {number}" 为 "this element"
-    cleaned_text = re.sub(r'UI element \d+', 'this element', text)
-    # 删除 "(index {number})"
-    cleaned_text = re.sub(r'\(index \d+\)', '', cleaned_text)
-    return cleaned_text.strip()
-
-
-def save_task_history(agent, task_id: str, task_goal: str, success: bool, output_dir: str = "./task_histories"):
-    """
-    将 agent.history 中每一步的 action、reason、summary 及截图
-    编码为 base64，输出到 JSON 文件。
-    """
-    # 为每个 task 单独建一个文件夹
-    task_dir = os.path.join(output_dir, task_id)
-
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(task_dir, exist_ok=True)
-    trajectory = []
-    prompt_tokens = []
-    completion_tokens = []
-
-    screen_size = get_emulator_screen_size()
-    if screen_size is None:
-        screen_size = [1080, 2480]
-
-    export = {
-        'os': 'Android 13.0',
-        "episode_id": task_id,
-        "screen_resolution": screen_size,
-        "instruction": task_goal,
-        "trajectory": trajectory,
-        "trajectory_type": 2
-    }
-
-    exist_retry_step = False
-
-    for idx, step in enumerate(agent.history, start=1):
-        reason, action = m3a_utils.parse_reason_action_output(step.get("action_output"))
-        prompt_tokens.append(step.get('prompt_tokens'))
-        completion_tokens.append(step.get('completion_tokens'))
-
-        rec = {
-            "step_id": idx,
-            "action": step.get("action"),
-            "think": clean_element_number_text(reason),
-            # "summary": step.get("summary"),
-            "action_inputs": {
-                "start_coords": step.get("start_coords"),
-                "end_coords": step.get("end_coords"),
-                "direction": step.get("direction"),
-                "keycode": step.get("keycode"),
-                "content": step.get("content"),
-                'status': step.get("status"),
-                'app_name': step.get("app_name")
-            }
-        }
-
-        # 将 reason 转换为小写
-        reason_lower = reason.lower()
-        # 检查 reason_lower 是否包含 RETRY_KEYWORDS 中的任意字符
-        if any(keyword in reason_lower for keyword in RETRY_KEYWORDS):
-            exist_retry_step = True
-
-        if step.get("action") == "status":
-            if success:
-                if exist_retry_step:
-                    export['trajectory_type'] = 1
-                else:
-                    export['trajectory_type'] = 0
-
-        # 两张截图：before/after
-        for key in ("before_screenshot", 'before_screenshot_mark'):
-            img_array = step.get(key)
-            if img_array is not None:
-                filename = f"{idx}.png"  # e.g. before_screenshot_1.png
-                if key == "before_screenshot_mark":
-                    filename = f"{idx}-label.png"
-                file_path = os.path.join(task_dir, filename)
-                # 将 ndarray 转为 PIL 并保存
-                Image.fromarray(img_array.astype("uint8")).save(file_path)
-                if key == "before_screenshot_mark":
-                    rec['observation_mark'] = filename
-                else:
-                    rec['observation'] = filename
-        trajectory.append(rec)
-
-        # 保存页面结构 XML
-        for key in ("before_element_list", ''):
-            elements = step.get(key)
-            if elements is not None:
-                filename = f"{idx}.xml"
-                file_path = os.path.join(task_dir, filename)
-                ui_elements_to_xml(elements, file_path)
-                rec['xml'] = filename
-
-    out_path = os.path.join(task_dir, "task.json")
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(export, f, ensure_ascii=False, indent=2)
-    print(f"✅ Task history saved to {out_path}")
-    with open('cost_token', "w", encoding="utf-8") as f:
-        json.dump({
-            'prompt_tokens': sum(prompt_tokens),
-            'prompt_tokens_avg': sum(prompt_tokens) / len(prompt_tokens),
-            'completion_tokens': sum(completion_tokens),
-            'completion_tokens_avg': sum(completion_tokens) / len(completion_tokens)
-        }, f, ensure_ascii=False, indent=2)
-
-    print('消耗prompt_tokens Token：', sum(prompt_tokens))
-    print('消耗completion_tokens Token：', sum(completion_tokens))
-
-
-def main(argv: Sequence[str]) -> None:
-    del argv
-    _main()
-
-
-if __name__ == '__main__':
-    app.run(main)

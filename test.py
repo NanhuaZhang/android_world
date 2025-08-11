@@ -1,16 +1,17 @@
 # 假设你的 JSON 文件名为 data.json
 import json
-import os
-import re
 
-from parse import parse
+from minimal_tasks_runner import parse_recipes
 
-from minimal_tasks_runner import extract_from_template, parse_recipes
+
+def getJson():
+    with open('trajectory_mapping.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return data
 
 
 def getKeys():
-    with open('trajectory_mapping.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    data = getJson()
 
     # 获取所有值为 2 的 key
     keys_with_value_2 = [key for key, value in data.items() if value == 2]

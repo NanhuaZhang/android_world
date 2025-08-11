@@ -127,22 +127,22 @@ class RecipeDeleteMultipleRecipesWithNoise(_RecipeDeleteMultipleRecipes):
 
   complexity = 3.4
   n_rows = 3
-  n_rows_noise = 29
+  n_rows_noise = 9
 
 
 class RecipeDeleteMultipleRecipesWithConstraint(_RecipeDeleteMultipleRecipes):
   """Delete multiple recipes in Broccoli Recipe App based on ingredient."""
 
-  complexity = 4
+  complexity = 10
   n_rows = 3
-  n_rows_noise = 29
+  n_rows_noise = 6
 
   @property
   def goal(self) -> str:
     ingredient = self.params['ingredient']
     return (
         f'Delete the recipes from Broccoli app that use {ingredient} in the'
-        ' directions.'
+        ' directions. If you can not find the search result, click on them one by one to view the direction.'
     )
 
   def _validate_initial_state(
