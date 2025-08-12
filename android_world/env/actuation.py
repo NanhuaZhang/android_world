@@ -33,7 +33,7 @@ def execute_adb_action(
     screen_elements: list[Any],  # list[UIElement]
     screen_size: tuple[int, int],
     env: env_interface.AndroidEnvInterface,
-    status: any
+    status: any = None
 ) -> dict[str, str | ndarray | list[UIElement] | tuple[float, float]] | None:
   """Execute an action based on a JSONAction object.
 
@@ -83,13 +83,38 @@ def execute_adb_action(
       if action.index is not None or (
           action.x is not None and action.y is not None
       ):
+        click_x = None
+        click_y = None
+        if action.index is not None:
+          element = screen_elements[action.index]
+          if '/new_name' in element.resource_name or '/save_image_filename' in element.resource_name:
+            adb_utils.issue_generic_request(
+                [
+                    'shell',
+                    'input',
+                    'keycombination',
+                    '113',
+                    '29',
+                    '&&',
+                    'input',
+                    'keyevent',
+                    '67',
+                ],
+                env,
+            )
+            time.sleep(1.0)
+
+          # markor: add text to header 时放开
+          # if element.resource_name == 'net.gsantner.markor:id/document__fragment__edit__highlighting_editor':
+          #   click_x, click_y = 20, 310
+          #   text = action.text.replace("\n\n", "\n")
         # First focus on enter text UI element.
         click_action = copy.deepcopy(action)
         click_action.action_type = 'click'
-        # markor: add text to header 时放开
-        # click_action.x = 20
-        # click_action.y = 310
-        # click_action.index = None
+        if click_x is not None and click_y is not None:
+          click_action.x = click_x
+          click_action.y = click_y
+          click_action.index = None
         execute_adb_action(click_action, screen_elements, screen_size, env, status)
         time.sleep(1.0)
 
@@ -101,10 +126,11 @@ def execute_adb_action(
         step_data['before_screenshot'] = state.pixels.copy()
         step_data['before_element_list'] = state.ui_elements
         target_element = state.ui_elements[action.index]
-        center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
-        # markor: add text to header 时放开
-        # center_x, center_y = (20, 310) # target_element.bbox_pixels.center  # (x1, y1, x2, y2)
 
+        if click_x is not None and click_y is not None:
+          center_x, center_y = click_x, click_y
+        else:
+          center_x, center_y = target_element.bbox_pixels.center
         click_point = (center_x, center_y)
         step_data['start_coords']= click_point
         step_data['end_coords']= click_point

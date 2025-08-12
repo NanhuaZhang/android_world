@@ -20,6 +20,7 @@ selected.
 """
 import base64
 import dataclasses
+import datetime
 import io
 import json
 from collections.abc import Sequence
@@ -28,6 +29,8 @@ import random
 import re
 from typing import Type
 
+from android_world.task_evals.single import vlc
+from android_world.utils import datetime_utils
 import pandas as pd
 from PIL import Image
 from absl import app
@@ -53,8 +56,9 @@ from android_world.task_evals.utils import sqlite_schema_utils, user_data_genera
 
 from android_world.task_evals.common_validators import sqlite_validators
 from android_world.task_evals.single.expense import _get_random_timestamp, _generate_expense
-from android_world.task_evals.single.markor import _NOTE_TITLES
+from android_world.task_evals.single.markor import _NOTE_TITLES, generate_random_sentence
 from android_world.task_evals.single.recipe import _generate_random_recipe
+from android_world.task_evals.single.calendar import events_generator
 from parse import parse
 
 logging.set_verbosity(logging.WARNING)
@@ -467,6 +471,37 @@ def extract_from_template(template: str, text: str) -> tuple:
     result = parse(template, text)
     return result.named.values() if result else None
 
+def get_day_of_week(day_of_week):
+    # 创建日期对象，假设 a 是当前日期的日
+    current_date = device_constants.DT
+
+    # 将星期几转换为数字（0=Monday, 6=Sunday）
+    days_of_week = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6
+    }
+
+    # 获取目标星期几的数字表示
+    target_weekday = days_of_week.get(day_of_week)
+
+    if target_weekday is None:
+        raise ValueError("Invalid day of the week")
+
+    # 计算目标日期
+    current_weekday = current_date.weekday()
+    days_difference = (target_weekday - current_weekday) % 7
+    target_date = current_date + datetime.timedelta(days=days_difference)
+
+    return {
+      "year": target_date.year,
+      "month": target_date.month,
+      "day": target_date.day,
+    }
 
 def read_csv():
     # 读取 CSV 文件
@@ -655,7 +690,6 @@ def _main() -> None:
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
 
-
         if params is None:
             continue
 
@@ -839,7 +873,7 @@ def main(argv: Sequence[str]) -> None:
 if __name__ == '__main__':
     app.run(main)
 
-        # if task_value == 'ContactsAd  dContact':
+        # if task_value == 'ContactsAddContact':
         #     name, number = extract_name_and_number(row['instruction'])
         #     if name is not None and number is not None:
         #         print(f"Name: {name}, Number: {number}")
@@ -1075,6 +1109,42 @@ if __name__ == '__main__':
         #             'body': 'Discuss project updates, assign tasks, and review deadlines.',
         #         }
 
+        # if task_value == 'MarkorAddNoteHeader':
+        #     result = extract_from_template(
+        #         (
+        #             "Update the Markor note {original_name} by adding the following text,"
+        #             ' along with a new blank line before the existing content: "{header}",'
+        #             " and rename it to {new_name}."
+        #         ),
+        #         row['instruction']
+        #     )
+        #     if result is not None:
+        #       original_name, header, new_name = result
+        #       if original_name is not None and new_name is not None and header is not None:
+        #         original_content = generate_random_sentence()
+        #         params = {
+        #           "original_name": original_name,
+        #           "original_content": original_content,
+        #           "new_name": new_name,
+        #           "header": header,
+        #         }
+          
+        # if task_value == 'MarkorChangeNoteContent':
+        #     result = extract_from_template(
+        #         (
+        #             'Update the content of {original_name} to "{updated_content}" in Markor'
+        #             " and change its name to {new_name}."
+        #         ),
+        #         row['instruction']
+        #     )
+        #     if result is not None:
+        #       original_name, updated_content, new_name = result
+        #       if original_name is not None and new_name is not None and updated_content is not None:
+        #         params = {
+        #           "original_name": original_name,
+        #           "updated_content": updated_content,
+        #           "new_name": new_name,
+        #         }
 
         # if task_value == 'MarkorCreateNote':
         #     file_name,text = extract_from_template(
@@ -1661,3 +1731,138 @@ if __name__ == '__main__':
     #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
     #             "text_representation_type": recipe_type,
     #         }
+  
+        # if task_value == 'SimpleCalendarDeleteEvents':
+        #     year, month, day = extract_from_template(
+        #         (
+        #             "In Simple Calendar Pro, delete all the calendar events on"
+        #             " {year}-{month}-{day}"
+        #         ),
+        #         row['instruction']
+        #     )
+        #     if year is not None and month is not None and day is not None:
+        #         year = int(year)
+        #         month = int(month)
+        #         day = int(day)
+        #         events: list[sqlite_schema_utils.CalendarEvent] = [
+        #             events_generator.generate_event(
+        #                 datetime_utils.create_random_october_2023_unix_ts(
+        #                     start_day=day, end_day=day
+        #                 )
+        #             )
+        #             for _ in range(3)
+        #         ]
+        #         noise_events: list[sqlite_schema_utils.CalendarEvent] = generate_noise_events(
+        #             events,
+        #             5,
+        #             filter_fn=lambda candidate: candidate.start_datetime.day
+        #             not in (target.start_datetime.day for target in events),
+        #         )
+        #         params = {
+        #             'year': year,
+        #             'month': month,
+        #             'day': day,
+        #             sqlite_validators.ROW_OBJECTS: events,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+        #         }
+
+        # if task_value == 'SimpleCalendarDeleteOneEvent':
+        #     year, month, day, hour, event_title = extract_from_template(
+        #         (
+        #             "In Simple Calendar Pro, delete the calendar event on"
+        #             " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
+        #         ),
+        #         row['instruction']
+        #     )
+        #     if year is not None and month is not None and day is not None and hour is not None and event_title is not None:
+        #         year = int(year)
+        #         month = int(month)
+        #         day = int(day)
+        #         hour = int(hour)
+        #         event: sqlite_schema_utils.CalendarEvent = events_generator.generate_event(
+        #             datetime_utils.create_random_october_2023_unix_ts(
+        #               start_day=day, end_day=day, start_hour=hour
+        #             )
+        #         )
+        #         noise_events = generate_noise_events(
+        #             [event],
+        #             5,
+        #             filter_fn=(
+        #                 lambda candidate: (candidate.start_datetime != event.start_datetime)
+        #                 and (candidate.title != event.title)
+        #             ),
+        #         )
+        #         params = {
+        #             'year': year,
+        #             'month': month,
+        #             'day': day,
+        #             'hour': hour,
+        #             'duration_mins': event.duration_mins,
+        #             'event_title': event.title,
+        #             'event_description': event.description,
+        #             sqlite_validators.ROW_OBJECTS: [event],
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+        #         }
+
+        # if task_value == 'SimpleCalendarDeleteEventsOnRelativeDay':
+        #     day_of_week = extract_from_template(
+        #         (
+        #             "In Simple Calendar Pro, delete all events scheduled for this"
+        #             " {day_of_week}."
+        #         ),
+        #         row['instruction']
+        #     )
+        #     day_of_week = list(day_of_week)[0]
+        #     if day_of_week is not None:
+        #         target_date = get_day_of_week(day_of_week.lower())
+        #         events: list[sqlite_schema_utils.CalendarEvent] = [
+        #             events_generator.generate_event(
+        #                 datetime_utils.create_random_october_2023_unix_ts(
+        #                     start_day=target_date['day'], end_day=target_date['day']
+        #                 )
+        #             )
+        #             for _ in range(2)
+        #         ]
+        #         noise_events: list[sqlite_schema_utils.CalendarEvent] = generate_noise_events(
+        #             events,
+        #             5,
+        #             filter_fn=lambda candidate: candidate.start_datetime.day
+        #             not in (target.start_datetime.day for target in events),
+        #         )
+        #         params = {
+        #             'year': target_date['year'],
+        #             'month': target_date['month'],
+        #             'day': target_date['day'],
+        #             'day_of_week': day_of_week,
+        #             sqlite_validators.ROW_OBJECTS: events,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+        #         }
+
+        # if task_value == 'SimpleDrawProCreateDrawing':
+        #   file_name = extract_from_template(
+        #     "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in the Pictures folder within the sdk_gphone_x86_64 storage area.",
+        #     row['instruction']
+        #   )
+        #   file_name = list(file_name)[0]
+        #   if file_name is not None:
+        #     params = {
+        #       'file_name': file_name,
+        #       'text': '',
+        #     }
+
+        # if task_value == 'MarkorMoveNote':
+        #   options = extract_from_template(
+        #     (
+        #         "In Markor, move the note {file_name} from {source_folder} to"
+        #         " {destination_folder}."
+        #     ),
+        #     row['instruction']
+        #   )
+        #   if options is not None:
+        #     file_name, source_folder, destination_folder = options
+        #     params = {
+        #       'file_name': file_name,
+        #       'source_folder': source_folder,
+        #       'destination_folder': destination_folder,
+        #       'noise_candidates': _NOTE_TITLES,
+        #     }
