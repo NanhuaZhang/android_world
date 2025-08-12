@@ -275,7 +275,7 @@ def find_and_click_element(
 
   ui_elements = env.get_ui_elements()
   screen_size = (0, 0)  # Unused, but required.
-  execute_adb_action(action, ui_elements, screen_size, env)
+  execute_adb_action(action, ui_elements, screen_size, env, {})
 
 
 def _wait_and_find_click_element(

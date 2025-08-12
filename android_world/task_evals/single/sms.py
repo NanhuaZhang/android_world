@@ -247,7 +247,7 @@ class SimpleSmsResend(sms_validators.SimpleSMSSendSms):
   """Task for checking that a message was resent."""
 
   complexity = 1.2
-  template = "Resend the message I just sent to {name} in Simple SMS Messenger"
+  template = "Resend the message I just sent to {name} in Simple SMS Messenger. Input the message and resend it"
 
   schema = {
       "type": "object",

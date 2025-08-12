@@ -497,13 +497,52 @@ def _main() -> None:
         if len(retry_task) >0 and str(row['id']) not in retry_task:
             continue
 
+        # if row['id'] < 2578:
+        #     continue
+
+        if task_value == 'SimpleSmsSendReceivedAddress':
+            name1, name2 = extract_from_template("Text the address of the event to {name1} that {name2} just sent me in"
+      " Simple SMS Messenger",row['instruction'])
+            if name1 is not None and name2 is not None:
+                print(f"name1: {name1}, name2: {name2}")
+                params = {
+                    "name1": name1,
+                    "number": user_data_generation.generate_random_number(),
+                    "name2": name2,
+                    "message": user_data_generation.generate_random_address(),
+                }
+
+        if task_value == 'SimpleSmsResend':
+            name = extract_from_template("Resend the message I just sent to {name} in Simple SMS Messenger",row['instruction'])
+            name = list(name)[0]
+            if name is not None :
+                print(f"name: {name}")
+                params = {
+                    'name': name,
+                    "number": user_data_generation.generate_random_number(),
+                    "message": random.choice(user_data_generation.RANDOM_SENTENCES),
+                }
+
+        if task_value == 'OsmAndTrack':
+            waypoints = extract_from_template('Save a track with waypoints {waypoints} in the'
+        ' OsmAnd maps app in the same order as listed.',row['instruction'])
+            waypoints = list(waypoints)[0]
+            if waypoints is None:
+                continue
+
+            waypoints = waypoints.split(', ')
+
+            if len(waypoints) > 2:
+                print(f"waypoints: {waypoints}")
+                track_name = f'{waypoints[0]} to {waypoints[-1]}'
+                params = {'track_name': track_name, 'waypoints': waypoints}
 
         # if task_value == 'RecipeDeleteMultipleRecipesWithConstraint':
         #     ingredient = extract_from_template('Delete the recipes from Broccoli app that use {ingredient} in the'
         # ' directions.',row['instruction'])
         #     ingredient = list(ingredient)[0]
         #     if ingredient is not None:
-        #         noise = sqlite_schema_utils.get_random_items(
+        #         noise = sqlite_sche ma_utils.get_random_items(
         #             6,
         #             _generate_random_recipe,
         #             replacement=False,
@@ -543,7 +582,7 @@ def _main() -> None:
         #             candidate = dataclasses.replace(candidate, title=title)
         #             target_rows.append(candidate)
         #
-        #         while len(noise_rows) < 9:
+        #         while len(noise_rows) < 3:
         #             candidate = _generate_random_recipe()
         #             if not any([candidate.title == r.title for r in target_rows]) and not any([candidate.title == r.title for r in noise_rows]):
         #                 noise_rows.append(candidate)
@@ -552,7 +591,7 @@ def _main() -> None:
         #             sqlite_validators.ROW_OBJECTS: target_rows,
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
-
+        #
         # if task_value == 'RecipeDeleteMultipleRecipes':
         #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
         #     titles = list(titles)[0]
@@ -571,7 +610,7 @@ def _main() -> None:
         #             sqlite_validators.ROW_OBJECTS: target_rows,
         #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
-
+        #
         # if task_value == 'RecipeDeleteSingleRecipe':
         #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
         #     titles = list(titles)[0]
@@ -590,7 +629,7 @@ def _main() -> None:
         #             sqlite_validators.ROW_OBJECTS: target_rows,
         #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
-
+        #
         # if task_value == 'RecipeDeleteSingleWithRecipeWithNoise':
         #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
         #     titles = list(titles)[0]
@@ -606,7 +645,7 @@ def _main() -> None:
         #             candidate = dataclasses.replace(candidate, title=title)
         #             target_rows.append(candidate)
         #
-        #         while len(noise_rows) < 29:
+        #         while len(noise_rows) < 3:
         #             candidate = _generate_random_recipe()
         #             if not any([candidate.title == r.title for r in target_rows]) and not any([candidate.title == r.title for r in noise_rows]):
         #                 noise_rows.append(candidate)
@@ -616,36 +655,6 @@ def _main() -> None:
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
 
-
-        if task_value == 'RecipeAddMultipleRecipes' or task_value == 'RecipeAddSingleRecipe':
-            recipe_type, recipes = parse_recipes(row['instruction'])
-            if recipe_type is not None and len(recipes) > 0:
-                target_rows: list[sqlite_schema_utils.Recipe] = []
-                for recipe in recipes:
-                    if recipe['title'] is not None and recipe['description'] is not None and recipe['servings'] is not None and recipe['preparationTime'] is not None and recipe['ingredients'] is not None and recipe['directions'] is not None:
-                        target_rows.append(sqlite_schema_utils.Recipe(
-                            recipe['title'],
-                            recipe['description'],
-                            recipe['servings'],
-                            recipe['preparationTime'],
-                            '',
-                            recipe['ingredients'],
-                            recipe['directions'],
-                        ))
-                if task_value == 'RecipeAddSingleRecipe':
-                  noise_rows = []
-                else:
-                  noise_rows = sqlite_schema_utils.get_random_items(
-                    5,
-                    _generate_random_recipe,
-                    replacement=False,
-                    filter_fn=lambda r: any([r.title != t.title for t in target_rows]),
-                )
-                params = {
-                    sqlite_validators.ROW_OBJECTS: target_rows,
-                    sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-                    "text_representation_type": recipe_type,
-                }
 
         if params is None:
             continue
@@ -1622,3 +1631,33 @@ if __name__ == '__main__':
         #       params["footer"] = param2
         #     elif edit_type == "replace":
         #       params["replace_text"] = param2
+
+    # if task_value == 'RecipeAddMultipleRecipes' or task_value == 'RecipeAddSingleRecipe':
+    #     recipe_type, recipes = parse_recipes(row['instruction'])
+    #     if recipe_type is not None and len(recipes) > 0:
+    #         target_rows: list[sqlite_schema_utils.Recipe] = []
+    #         for recipe in recipes:
+    #             if recipe['title'] is not None and recipe['description'] is not None and recipe['servings'] is not None and recipe['preparationTime'] is not None and recipe['ingredients'] is not None and recipe['directions'] is not None:
+    #                 target_rows.append(sqlite_schema_utils.Recipe(
+    #                     recipe['title'],
+    #                     recipe['description'],
+    #                     recipe['servings'],
+    #                     recipe['preparationTime'],
+    #                     '',
+    #                     recipe['ingredients'],
+    #                     recipe['directions'],
+    #                 ))
+    #         if task_value == 'RecipeAddSingleRecipe':
+    #           noise_rows = []
+    #         else:
+    #           noise_rows = sqlite_schema_utils.get_random_items(
+    #             5,
+    #             _generate_random_recipe,
+    #             replacement=False,
+    #             filter_fn=lambda r: any([r.title != t.title for t in target_rows]),
+    #         )
+    #         params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+    #             "text_representation_type": recipe_type,
+    #         }

@@ -111,7 +111,7 @@ class RecipeDeleteSingleWithRecipeWithNoise(_RecipeDeleteMultipleRecipes):
 
   complexity = 2
   n_rows = 1
-  n_rows_noise = 29
+  n_rows_noise = 3
 
 
 class RecipeDeleteMultipleRecipes(_RecipeDeleteMultipleRecipes):
@@ -127,7 +127,7 @@ class RecipeDeleteMultipleRecipesWithNoise(_RecipeDeleteMultipleRecipes):
 
   complexity = 3.4
   n_rows = 3
-  n_rows_noise = 9
+  n_rows_noise = 3
 
 
 class RecipeDeleteMultipleRecipesWithConstraint(_RecipeDeleteMultipleRecipes):
