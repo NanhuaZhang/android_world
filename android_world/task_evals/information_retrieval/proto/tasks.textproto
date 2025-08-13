@@ -240,7 +240,8 @@ tasks {
 tasks {
   name: "SimpleCalendarEventOnDateAtTime"
   prompt: "What is on my schedule for {date} at {time} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # complexity: 1
+  complexity: 3
   relevant_state {
     state {
       calendar {
@@ -363,7 +364,8 @@ tasks {
 tasks {
   name: "SimpleCalendarAnyEventsOnDate"
   prompt: "Do I have any events {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # complexity: 1
+  complexity: 3
   relevant_state {
     state {
       calendar {
@@ -967,7 +969,8 @@ tasks {
 tasks {
   name: "SimpleCalendarEventsInTimeRange"
   prompt: "Do I have any events between {start_time} and 8pm {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # complexity: 1
+  complexity: 3
   relevant_state {
     state {
       calendar {

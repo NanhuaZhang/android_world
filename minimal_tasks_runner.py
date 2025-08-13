@@ -148,7 +148,7 @@ def extract_name_and_number(instruction):
     number = number_match.group() if number_match else None
 
     # 提取姓名（寻找 “contact for xxx.” 的格式）
-    name_match = re.search(r'contact for ([A-Z][a-z]+\s[A-Z][a-z]+)', instruction)
+    name_match = re.search(r'contact for ((?:[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)|(?:[A-Z][a-z]+))', instruction)
     name = name_match.group(1) if name_match else None
 
     return name, number
@@ -690,6 +690,96 @@ def _main() -> None:
         #             sqlite_validators.ROW_OBJECTS: target_rows,
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
+
+        if task_value == 'MarkorMergeNotes':
+          options = extract_from_template(
+            (
+                "Merge the contents of Markor notes {file1_name}, {file2_name} and"
+                " {file3_name} (in the same order) into a new Markor note named"
+                " {new_file_name} and save it. Add a new line between the content of each"
+                " note."
+            ),
+            row['instruction']
+          )
+          if options is not None:
+            file1_name, file2_name, file3_name, new_file_name = options
+            params = {
+              'file1_name': file1_name,
+              'file2_name': file2_name,
+              'file3_name': file3_name,
+              'new_file_name': new_file_name,
+              "file1_content": user_data_generation.generate_random_string(20),
+              "file2_content": user_data_generation.generate_random_string(20),
+              "file3_content": user_data_generation.generate_random_string(20),
+            }
+
+        if task_value == 'MarkorTranscribeVideo':
+          options = extract_from_template(
+            (
+                "Transcribe the contents of video {video_name} by watching it in VLC"
+                " player (located in Download) and writing the sequence of strings shown"
+                " on each frame to the text file {file_name} in Markor as a comma"
+                ' separated list. For example, if the first frame shows the text "edna"'
+                ' and the second frame shows the text "pineapple", then the text file'
+                ' should contain only the following text: "edna, pineapple".'
+            ),
+            row['instruction']
+          )
+          if options is not None:
+            video_name, file_name = options
+
+            messages = list(
+                random.sample(
+                    user_data_generation.COMMON_GIVEN_NAMES, random.randint(2, 4)
+                )
+            )
+            return {
+                "file_name": file_name,
+                "text": ",".join(messages),
+                # Video specific.
+                "messages": messages,
+                "video_name": video_name,
+                "noise_files": [
+                    vlc.generate_file_name() for _ in range(random.randint(5, 20))
+                ],
+            }
+
+        if task_value == 'OsmAndFavorite':
+          options = extract_from_template(
+            (
+                'Add a favorite location marker for {location} in the OsmAnd maps app.'
+            ),
+            row['instruction']
+          )
+          if options is not None:
+            params = {
+              'location': list(options)[0]
+            }
+        
+        if task_value == 'OsmAndMarker':
+          options = extract_from_template(
+            'Add a location marker for {location} in the OsmAnd maps app.',
+            row['instruction']
+          )
+          if options is not None:
+            params = {
+              'location': list(options)[0]
+            }
+        
+        if task_value == 'OsmAndTrack':
+          options = extract_from_template(
+            (
+              'Save a track with waypoints {waypoints} in the'
+              ' OsmAnd maps app in the same order as listed.'
+            ),
+            row['instruction']
+          )
+          if options is not None and len(options):
+            track_name = f'{options[0]} to {options[-1]}'
+            params = {
+              'track_name': track_name,
+              'waypoints': options,
+            }
 
         if params is None:
             continue
