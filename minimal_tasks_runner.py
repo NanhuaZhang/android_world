@@ -504,6 +504,28 @@ def get_day_of_week(day_of_week):
       "day": target_date.day,
     }
 
+
+from typing import List, Dict, Any, Optional, Union
+
+
+def count_key_values(data: List[Dict[str, Any]], key: str, value: Optional[Any] = None) -> Union[int, dict]:
+    """
+    统计数组对象中某个 key 的值出现次数（不用 Counter）。
+
+    :param data: 列表，每个元素是字典
+    :param key: 要统计的 key
+    :param value: 可选，只统计某个具体值
+    :return: 如果 value 为空，返回 dict；否则返回指定值的次数
+    """
+    counts = {}
+    for item in data:
+        val = item.get(key)
+        counts[val] = counts.get(val, 0) + 1
+
+    if value is not None:
+        return counts.get(value, 0)
+    return counts
+
 def read_csv():
     # 读取 CSV 文件
     df = pd.read_csv('output.csv')  # 替换为你的文件
@@ -607,93 +629,93 @@ def _main() -> None:
         #         }
         #
 
-        if task_value == 'SportsTrackerActivitiesCountForWeek':
-            category= extract_from_template(
-                "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
-                row['instruction'])
-            category = list(category)[0]
-            if category is not None:
-                print(f"category: {category} ")
-                params = {
-                    'start_date': 'October 10 2023',
-                    'category': category,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': category,
-                    'activity_description': 'Wandered off the beaten path.'
-                }
-
-        if task_value == 'SportsTrackerActivitiesOnDate':
-            date= extract_from_template(
-                "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
-            row['instruction'])
-            date = list(date)[0]
-            if date is not None:
-                print(f"date: {date} ")
-                params = {
-                    'category': 'cycling',
-                    'date': date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'cycling',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-
-        if task_value == 'SportsTrackerActivityDuration':
-            category,date= extract_from_template(
-                "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
-            row['instruction'])
-            if date is not None and category is not None:
-                print(f"date: {date} ")
-                params = {
-                    'category': category,
-                    'date': date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': category,
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-
-        if task_value == 'SportsTrackerLongestDistanceActivity':
-            category= extract_from_template(
-                "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
-            category = list(category)[0]
-            if category is not None:
-                print(f"category: {category} ")
-                params = {
-                    'category': category,
-                    'start_date': "October 14 2023",
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': category,
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-
-        if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
-            category,start_date,end_date= extract_from_template(
-                "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
-            row['instruction'])
-            if category is not None and start_date is not None and end_date is not None:
-                print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
-                params = {
-                    'category': category,
-                    'start_date': start_date,
-                    'end_date': end_date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'Skill work',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
+        # if task_value == 'SportsTrackerActivitiesCountForWeek':
+        #     category= extract_from_template(
+        #         "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
+        #         row['instruction'])
+        #     category = list(category)[0]
+        #     if category is not None:
+        #         print(f"category: {category} ")
+        #         params = {
+        #             'start_date': 'October 10 2023',
+        #             'category': category,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': category,
+        #             'activity_description': 'Wandered off the beaten path.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerActivitiesOnDate':
+        #     date= extract_from_template(
+        #         "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
+        #     row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'category': 'cycling',
+        #             'date': date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'cycling',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerActivityDuration':
+        #     category,date= extract_from_template(
+        #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
+        #     row['instruction'])
+        #     if date is not None and category is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'category': category,
+        #             'date': date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': category,
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerLongestDistanceActivity':
+        #     category= extract_from_template(
+        #         "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
+        #     category = list(category)[0]
+        #     if category is not None:
+        #         print(f"category: {category} ")
+        #         params = {
+        #             'category': category,
+        #             'start_date': "October 14 2023",
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': category,
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+        #
+        # if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
+        #     category,start_date,end_date= extract_from_template(
+        #         "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
+        #     row['instruction'])
+        #     if category is not None and start_date is not None and end_date is not None:
+        #         print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
+        #         params = {
+        #             'category': category,
+        #             'start_date': start_date,
+        #             'end_date': end_date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'Skill work',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
 
         # if task_value == 'RecipeDeleteMultipleRecipesWithConstraint':
         #     ingredient = extract_from_template('Delete the recipes from Broccoli app that use {ingredient} in the'
@@ -724,97 +746,40 @@ def _main() -> None:
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise,
         #             'ingredient': ingredient,
         #         }
-
-        if task_value == 'MarkorMergeNotes':
-          options = extract_from_template(
-            (
-                "Merge the contents of Markor notes {file1_name}, {file2_name} and"
-                " {file3_name} (in the same order) into a new Markor note named"
-                " {new_file_name} and save it. Add a new line between the content of each"
-                " note."
-            ),
+        if task_value == 'VlcCreatePlaylist':
+          playlist_name,files = extract_from_template(
+              'Create a playlist titled "{playlist_name}" with the following files'
+              ' in VLC (located in Internal Memory/VLCVideos), in order: {files}'
+              ,
             row['instruction']
           )
-          if options is not None:
-            file1_name, file2_name, file3_name, new_file_name = options
-            params = {
-              'file1_name': file1_name,
-              'file2_name': file2_name,
-              'file3_name': file3_name,
-              'new_file_name': new_file_name,
-              "file1_content": user_data_generation.generate_random_string(20),
-              "file2_content": user_data_generation.generate_random_string(20),
-              "file3_content": user_data_generation.generate_random_string(20),
-            }
 
-        if task_value == 'MarkorTranscribeVideo':
-          options = extract_from_template(
-            (
-                "Transcribe the contents of video {video_name} by watching it in VLC"
-                " player (located in Download) and writing the sequence of strings shown"
-                " on each frame to the text file {file_name} in Markor as a comma"
-                ' separated list. For example, if the first frame shows the text "edna"'
-                ' and the second frame shows the text "pineapple", then the text file'
-                ' should contain only the following text: "edna, pineapple".'
-            ),
-            row['instruction']
-          )
-          if options is not None:
-            video_name, file_name = options
+          if playlist_name is not None and files is not None:
+              files = files.split(', ')
+              params = {
+                  'playlist_name': playlist_name,
+                  'files': files,
+                  'noise_files': [generate_file_name() for _ in range(2)],
+                }
 
-            messages = list(
-                random.sample(
-                    user_data_generation.COMMON_GIVEN_NAMES, random.randint(2, 4)
-                )
+
+        if task_value == 'VlcCreateTwoPlaylists':
+            playlist_name1, files1,playlist_name2, files2= extract_from_template(
+                'Create a playlist titled "{playlist_name1}" with the following files in VLC (located in Internal Memory/VLCVideos), in order: {files1}. And then, create a playlist titled "{playlist_name2}" with the following files in VLC, in order: {files2}.',
+                row['instruction']
             )
-            return {
-                "file_name": file_name,
-                "text": ",".join(messages),
-                # Video specific.
-                "messages": messages,
-                "video_name": video_name,
-                "noise_files": [
-                    vlc.generate_file_name() for _ in range(random.randint(5, 20))
-                ],
-            }
 
-        if task_value == 'OsmAndFavorite':
-          options = extract_from_template(
-            (
-                'Add a favorite location marker for {location} in the OsmAnd maps app.'
-            ),
-            row['instruction']
-          )
-          if options is not None:
-            params = {
-              'location': list(options)[0]
-            }
-
-        if task_value == 'OsmAndMarker':
-          options = extract_from_template(
-            'Add a location marker for {location} in the OsmAnd maps app.',
-            row['instruction']
-          )
-          if options is not None:
-            params = {
-              'location': list(options)[0]
-            }
-
-        if task_value == 'OsmAndTrack':
-          options = extract_from_template(
-            (
-              'Save a track with waypoints {waypoints} in the'
-              ' OsmAnd maps app in the same order as listed.'
-            ),
-            row['instruction']
-          )
-          if options is not None and len(options):
-            track_name = f'{options[0]} to {options[-1]}'
-            params = {
-              'track_name': track_name,
-              'waypoints': options,
-            }
-
+            if playlist_name1 is not None and files1 is not None and playlist_name2 is not None and files2 is not None:
+                files1 = files1.split(', ')
+                files2 = files2.split(', ')
+                params = {
+                    'playlist_name1': playlist_name1,
+                    'files1': files1,
+                    'playlist_name2': playlist_name2,
+                    'files2': files2,
+                    'noise_files1': [generate_file_name() for _ in range(2)],
+                    'noise_files2': [generate_file_name() for _ in range(2)],
+                }
         if params is None:
             continue
 
@@ -833,6 +798,9 @@ def _main() -> None:
         is_done = False
         for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
             response = agent.step(task.goal)
+            if count_key_values(agent.history,'action','wait')>= 4:
+                break
+
             if response.done:
                 is_done = True
                 break

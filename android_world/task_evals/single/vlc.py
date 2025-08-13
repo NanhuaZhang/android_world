@@ -157,7 +157,7 @@ class VlcCreatePlaylist(_VLC):
     return {
         'playlist_name': playlist_name,
         'files': files,
-        'noise_files': [generate_file_name() for _ in range(num_files)],
+        'noise_files': [generate_file_name() for _ in range(2)],
     }
 
 
@@ -165,7 +165,7 @@ class VlcCreateTwoPlaylists(task_eval.TaskEval):
   """Task to create two playlists in VLC."""
 
   app_names = ['vlc']
-  complexity = 4.8
+  complexity = 2.8
   schema = {
       'type': 'object',
       'properties': {

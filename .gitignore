@@ -24,7 +24,9 @@ poetry.lock
 # PyCharm
 .idea
 
-/task_histories_receipt_delete/task_histories
+task_histories*/
+
+task_histories/
 /android_world/task_evals/information_retrieval/proto/*.py
 
 *.zip
