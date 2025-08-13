@@ -48,7 +48,6 @@ class SimpleSmsSendAfterCall(sms_validators.SimpleSMSSendSms):
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:
     super().initialize_task(env)
-    phone_validators.clear_phone_state(env.controller)
     adb_utils.call_emulator(env.controller, self.params["number"])
     time.sleep(5.0)
     adb_utils.end_call_if_active(env.controller)
@@ -173,10 +172,14 @@ class SimpleSmsSendClipboardContent(sms_validators.SimpleSMSSendSms):
 class SimpleSmsSendReceivedAddress(sms_validators.SimpleSMSSendSms):
   """Task for checking that a received address is forward to someone else."""
 
-  complexity = 1.8
+  complexity = 3
+  # template = (
+  #     "Text the address of the event to {name1} that {name2} just sent me in"
+  #     " Simple SMS Messenger"
+  # )
   template = (
-      "Text the address of the event to {name1} that {name2} just sent me in"
-      " Simple SMS Messenger"
+      "Text the address (in the received SMS details page) of the event to {name1} that {name2} just sent me in"
+      " Simple SMS Messenger (Add button can create new SMS before sending the address)"
   )
 
   schema = {
@@ -247,7 +250,8 @@ class SimpleSmsResend(sms_validators.SimpleSMSSendSms):
   """Task for checking that a message was resent."""
 
   complexity = 1.2
-  template = "Resend the message I just sent to {name} in Simple SMS Messenger. Input the message and resend it"
+  # template = "Resend the message I just sent to {name} in Simple SMS Messenger."
+  template = "Resend the message I just sent to {name} in Simple SMS Messenger. Don't copy message, input the message and resend it"
 
   schema = {
       "type": "object",
@@ -272,6 +276,7 @@ class SimpleSmsResend(sms_validators.SimpleSMSSendSms):
     adb_utils.disable_headsup_notifications(env.controller)
     super().initialize_task(env)
 
+    contacts_utils.clear_contacts(env.controller)
     contacts_utils.add_contact(
         self.params["name"], self.params["number"], env.controller
     )

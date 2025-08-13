@@ -270,8 +270,10 @@ class SimpleCalendarDeleteEvents(
   """
 
   n_rows = 3
-  n_rows_noise = 20
-  complexity = 1.4
+  # n_rows_noise = 20
+  # complexity = 1.4
+  n_rows_noise = 5
+  complexity = 3
   template = (
       "In Simple Calendar Pro, delete all the calendar events on"
       " {year}-{month}-{day}"
@@ -327,7 +329,8 @@ class SimpleCalendarDeleteOneEvent(SimpleCalendarDeleteEvents):
   """
 
   n_rows = 1
-  complexity = 1.2
+  # complexity = 1.2
+  complexity = 3
   template = (
       "In Simple Calendar Pro, delete the calendar event on"
       " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
@@ -371,7 +374,8 @@ class SimpleCalendarDeleteEventsOnRelativeDay(SimpleCalendarDeleteEvents):
   Sunday".
   """
 
-  complexity = 1.2
+  # complexity = 1.2
+  complexity = 3
   n_rows = 2
   _DAY_RANGE: int = 6
 

@@ -30,8 +30,12 @@ class SimpleDrawProCreateDrawing(task_eval.TaskEval):
   app_names = ("simple draw pro",)
   complexity = 1.8
   schema = file_validators.CreateFile.schema
+  # template = (
+  #     "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in"
+  #     " the Pictures folder within the sdk_gphone_x86_64 storage area."
+  # )
   template = (
-      "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in"
+      "Create a new drawing in Simple Draw Pro. Name it {file_name} (Do not enter the file extension). Save it in"
       " the Pictures folder within the sdk_gphone_x86_64 storage area."
   )
 

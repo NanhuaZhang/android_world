@@ -24,7 +24,7 @@ from android_world.env import adb_utils
 from android_world.env import interface
 from android_world.task_evals import task_eval
 from android_world.task_evals.utils import user_data_generation
-from android_world.utils import fuzzy_match_lib
+from android_world.utils import contacts_utils, fuzzy_match_lib
 
 
 def parse_message(row: str) -> dict[str, str]:
@@ -141,6 +141,7 @@ def was_sent(
         and fuzzy_match_lib.fuzzy_match(msg_body, body)
         and (current_time_ms - msg_date <= n_minutes_ms)
     ):
+      time.sleep(2)
       return True
     elif msg_number == phone_number and fuzzy_match_lib.fuzzy_match(
         msg_body, body
@@ -233,6 +234,7 @@ class SimpleSMSSendSms(task_eval.TaskEval):
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:
     super().initialize_task(env)
+    contacts_utils.clear_contacts(env.controller)
     adb_utils.toggle_airplane_mode("off", env.controller)
     clear_sms_and_threads(env.controller)
     android_time = self.get_android_time(env.controller)
