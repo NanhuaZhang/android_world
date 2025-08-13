@@ -2,7 +2,7 @@ import os
 import shutil
 
 # 根目录
-root_dir = "task_histories"
+root_dir = "task_histories_receipt_delete/task_histories"
 
 # 要删除的文件夹名称列表
 folders_to_delete = [

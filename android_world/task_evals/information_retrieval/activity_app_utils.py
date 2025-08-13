@@ -48,7 +48,7 @@ def setup_task_state(
   activities = []
   for activity in relevant_state.sports_activities:
     activities.append(_create_activity_from_proto(activity))
-  activities += _generate_random_activities(20, exclusion_conditions)
+  activities += _generate_random_activities(2, exclusion_conditions)
   random.shuffle(activities)
   _add_activities(activities, env)
 

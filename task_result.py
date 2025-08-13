@@ -1,7 +1,7 @@
 import os
 import json
 
-root_dir = "task_histories"
+root_dir = "task_histories_receipt_delete/task_histories"
 trajectory_output_file = "trajectory_mapping.json"
 result = {}
 

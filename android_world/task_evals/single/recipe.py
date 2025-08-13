@@ -117,7 +117,7 @@ class RecipeDeleteSingleWithRecipeWithNoise(_RecipeDeleteMultipleRecipes):
 class RecipeDeleteMultipleRecipes(_RecipeDeleteMultipleRecipes):
   """Delete multiple recipes in Broccoli Recipe App."""
 
-  complexity = 2.4
+  complexity = 3.4
   n_rows = 3
   n_rows_noise = 0
 

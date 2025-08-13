@@ -530,48 +530,170 @@ def _main() -> None:
         task_type: Type[task_eval.TaskEval] = aw_registry[task_value]
         params = None
 
-        if len(retry_task) >0 and str(row['id']) not in retry_task:
+        if len(retry_task) >0 and row['id'] not in retry_task:
             continue
 
-        # if row['id'] < 2578:
+        # if row['id'] < 2630:
         #     continue
+        # if task_value == 'TasksDueNextWeek':
+        #     extract_from_template(
+        #         "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer.",
+        #         row['instruction'])
+        #
+        #     print(f"TasksDueNextWeek ")
+        #     params = {}
+        #
+        # if task_value == 'TasksHighPriorityTasks':
+        #     extract_from_template(
+        #         "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",row['instruction'])
+        #     params = {
+        #     }
+        #
+        # if task_value == 'TasksHighPriorityTasksDueOnDate':
+        #     date= extract_from_template(
+        #         "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Team Sync-Up Meeting',
+        #             'date': date,
+        #             'time': '5:00pm',
+        #         }
+        #
+        # if task_value == 'TasksDueOnDate':
+        #     date= extract_from_template(
+        #         "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Attend networking event',
+        #             'date': date,
+        #             'notes': 'Complete paperwork.',
+        #             'importance': '0'
+        #         }
+        #
+        # if task_value == 'TasksIncompleteTasksOnDate':
+        #     date= extract_from_template(
+        #         "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Schedule team meeting',
+        #             'date': date,
+        #             'notes': 'Remember to review ahead of time.',
+        #             'time': '9:45am',
+        #             'importance': '2'
+        #         }
+        #
+        # if task_value == 'TasksCompletedTasksForDate':
+        #     date= extract_from_template(
+        #         "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'title': 'Review code changes',
+        #             'date': date,
+        #             'notes': 'This is high priority.',
+        #             'completed_date': 'October 15 2023',
+        #             'time': '11:00am',
+        #         }
+        #
 
-        if task_value == 'SimpleSmsSendReceivedAddress':
-            name1, name2 = extract_from_template("Text the address of the event to {name1} that {name2} just sent me in"
-      " Simple SMS Messenger",row['instruction'])
-            if name1 is not None and name2 is not None:
-                print(f"name1: {name1}, name2: {name2}")
+        if task_value == 'SportsTrackerActivitiesCountForWeek':
+            category= extract_from_template(
+                "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
+                row['instruction'])
+            category = list(category)[0]
+            if category is not None:
+                print(f"category: {category} ")
                 params = {
-                    "name1": name1,
-                    "number": user_data_generation.generate_random_number(),
-                    "name2": name2,
-                    "message": user_data_generation.generate_random_address(),
+                    'start_date': 'October 10 2023',
+                    'category': category,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': category,
+                    'activity_description': 'Wandered off the beaten path.'
                 }
 
-        if task_value == 'SimpleSmsResend':
-            name = extract_from_template("Resend the message I just sent to {name} in Simple SMS Messenger",row['instruction'])
-            name = list(name)[0]
-            if name is not None :
-                print(f"name: {name}")
+        if task_value == 'SportsTrackerActivitiesOnDate':
+            date= extract_from_template(
+                "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
+            row['instruction'])
+            date = list(date)[0]
+            if date is not None:
+                print(f"date: {date} ")
                 params = {
-                    'name': name,
-                    "number": user_data_generation.generate_random_number(),
-                    "message": random.choice(user_data_generation.RANDOM_SENTENCES),
+                    'category': 'cycling',
+                    'date': date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'cycling',
+                    'activity_description': 'Shared laughs and made memories with friends.'
                 }
 
-        if task_value == 'OsmAndTrack':
-            waypoints = extract_from_template('Save a track with waypoints {waypoints} in the'
-        ' OsmAnd maps app in the same order as listed.',row['instruction'])
-            waypoints = list(waypoints)[0]
-            if waypoints is None:
-                continue
+        if task_value == 'SportsTrackerActivityDuration':
+            category,date= extract_from_template(
+                "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
+            row['instruction'])
+            if date is not None and category is not None:
+                print(f"date: {date} ")
+                params = {
+                    'category': category,
+                    'date': date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': category,
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
 
-            waypoints = waypoints.split(', ')
+        if task_value == 'SportsTrackerLongestDistanceActivity':
+            category= extract_from_template(
+                "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
+            category = list(category)[0]
+            if category is not None:
+                print(f"category: {category} ")
+                params = {
+                    'category': category,
+                    'start_date': "October 14 2023",
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': category,
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
 
-            if len(waypoints) > 2:
-                print(f"waypoints: {waypoints}")
-                track_name = f'{waypoints[0]} to {waypoints[-1]}'
-                params = {'track_name': track_name, 'waypoints': waypoints}
+        if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
+            category,start_date,end_date= extract_from_template(
+                "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
+            row['instruction'])
+            if category is not None and start_date is not None and end_date is not None:
+                print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
+                params = {
+                    'category': category,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'Skill work',
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
 
         # if task_value == 'RecipeDeleteMultipleRecipesWithConstraint':
         #     ingredient = extract_from_template('Delete the recipes from Broccoli app that use {ingredient} in the'
@@ -601,94 +723,6 @@ def _main() -> None:
         #             sqlite_validators.ROW_OBJECTS: targets,
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise,
         #             'ingredient': ingredient,
-        #         }
-
-        # if task_value == 'RecipeDeleteMultipleRecipesWithNoise':
-        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
-        #     titles = list(titles)[0]
-        #     if titles is None:
-        #         continue
-        #
-        #     titles = titles.split(',')
-        #     if len(titles) > 0:
-        #         target_rows: list[sqlite_schema_utils.Recipe] = []
-        #         noise_rows: list[sqlite_schema_utils.Recipe] = []
-        #         for title in titles:
-        #             candidate = _generate_random_recipe()
-        #             candidate = dataclasses.replace(candidate, title=title)
-        #             target_rows.append(candidate)
-        #
-        #         while len(noise_rows) < 3:
-        #             candidate = _generate_random_recipe()
-        #             if not any([candidate.title == r.title for r in target_rows]) and not any([candidate.title == r.title for r in noise_rows]):
-        #                 noise_rows.append(candidate)
-        #
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #         }
-        #
-        # if task_value == 'RecipeDeleteMultipleRecipes':
-        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
-        #     titles = list(titles)[0]
-        #     if titles is None:
-        #         continue
-        #
-        #     titles = titles.split(',')
-        #     if len(titles) > 0:
-        #         target_rows: list[sqlite_schema_utils.Recipe] = []
-        #         for title in titles:
-        #             candidate = _generate_random_recipe()
-        #             candidate = dataclasses.replace(candidate, title=title)
-        #             target_rows.append(candidate)
-        #
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #         }
-        #
-        # if task_value == 'RecipeDeleteSingleRecipe':
-        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
-        #     titles = list(titles)[0]
-        #     if titles is None:
-        #         continue
-        #
-        #     titles = titles.split(',')
-        #     if len(titles) > 0:
-        #         target_rows: list[sqlite_schema_utils.Recipe] = []
-        #         for title in titles:
-        #             candidate = _generate_random_recipe()
-        #             candidate = dataclasses.replace(candidate, title=title)
-        #             target_rows.append(candidate)
-        #
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #         }
-        #
-        # if task_value == 'RecipeDeleteSingleWithRecipeWithNoise':
-        #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.',row['instruction'])
-        #     titles = list(titles)[0]
-        #     if titles is None:
-        #         continue
-        #
-        #     titles = titles.split(',')
-        #     if len(titles) > 0:
-        #         target_rows: list[sqlite_schema_utils.Recipe] = []
-        #         noise_rows: list[sqlite_schema_utils.Recipe] = []
-        #         for title in titles:
-        #             candidate = _generate_random_recipe()
-        #             candidate = dataclasses.replace(candidate, title=title)
-        #             target_rows.append(candidate)
-        #
-        #         while len(noise_rows) < 3:
-        #             candidate = _generate_random_recipe()
-        #             if not any([candidate.title == r.title for r in target_rows]) and not any([candidate.title == r.title for r in noise_rows]):
-        #                 noise_rows.append(candidate)
-        #
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
         #         }
 
         if task_value == 'MarkorMergeNotes':
@@ -755,7 +789,7 @@ def _main() -> None:
             params = {
               'location': list(options)[0]
             }
-        
+
         if task_value == 'OsmAndMarker':
           options = extract_from_template(
             'Add a location marker for {location} in the OsmAnd maps app.',
@@ -765,7 +799,7 @@ def _main() -> None:
             params = {
               'location': list(options)[0]
             }
-        
+
         if task_value == 'OsmAndTrack':
           options = extract_from_template(
             (
@@ -1012,167 +1046,6 @@ if __name__ == '__main__':
         #             'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
         #         }
 
-        # if task_value == 'TasksDueNextWeek':
-        #     extract_from_template(
-        #         "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer.",
-        #         row['instruction'])
-        #
-        #     print(f"TasksDueNextWeek ")
-        #     params = {}
-        #
-        # if task_value == 'TasksHighPriorityTasks':
-        #     extract_from_template(
-        #         "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",row['instruction'])
-        #     params = {
-        #     }
-        #
-        # if task_value == 'TasksHighPriorityTasksDueOnDate':
-        #     date= extract_from_template(
-        #         "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'title': 'Team Sync-Up Meeting',
-        #             'date': date,
-        #             'time': '5:00pm',
-        #         }
-        #
-        # if task_value == 'TasksDueOnDate':
-        #     date= extract_from_template(
-        #         "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'title': 'Attend networking event',
-        #             'date': date,
-        #             'notes': 'Complete paperwork.',
-        #             'importance': '0'
-        #         }
-        #
-        # if task_value == 'TasksIncompleteTasksOnDate':
-        #     date= extract_from_template(
-        #         "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'title': 'Schedule team meeting',
-        #             'date': date,
-        #             'notes': 'Remember to review ahead of time.',
-        #             'time': '9:45am',
-        #             'importance': '2'
-        #         }
-        #
-        # if task_value == 'TasksCompletedTasksForDate':
-        #     date= extract_from_template(
-        #         "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'title': 'Review code changes',
-        #             'date': date,
-        #             'notes': 'This is high priority.',
-        #             'completed_date': 'October 15 2023',
-        #             'time': '11:00am',
-        #         }
-        #
-        # if task_value == 'SportsTrackerActivitiesCountForWeek':
-        #     category= extract_from_template(
-        #         "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer.",
-        #         row['instruction'])
-        #     category = list(category)[0]
-        #     if category is not None:
-        #         print(f"category: {category} ")
-        #         params = {
-        #             'start_date': 'October 10 2023',
-        #             'category': category,
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': 'Slow day',
-        #             'activity_description': 'Wandered off the beaten path.'
-        #         }
-        #
-        # if task_value == 'SportsTrackerActivitiesOnDate':
-        #     date= extract_from_template(
-        #         "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
-        #     row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'category': 'cycling',
-        #             'date': date,
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': 'Skill work',
-        #             'activity_description': 'Shared laughs and made memories with friends.'
-        #         }
-        #
-        # if task_value == 'SportsTrackerActivityDuration':
-        #     category,date= extract_from_template(
-        #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
-        #     row['instruction'])
-        #     if date is not None and category is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'category': category,
-        #             'date': date,
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': 'Skill work',
-        #             'activity_description': 'Shared laughs and made memories with friends.'
-        #         }
-        #
-        # if task_value == 'SportsTrackerLongestDistanceActivity':
-        #     category= extract_from_template(
-        #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
-        #     row['instruction'])
-        #     category = list(category)[0]
-        #     if category is not None:
-        #         print(f"category: {category} ")
-        #         params = {
-        #             'category': category,
-        #             'start_date': "October 14 2023",
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': 'Skill work',
-        #             'activity_description': 'Shared laughs and made memories with friends.'
-        #         }
-        #
-        # if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
-        #     category,start_date,end_date= extract_from_template(
-        #         "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
-        #     row['instruction'])
-        #     if category is not None and start_date is not None and end_date is not None:
-        #         print(f"category: {category} start_date: {start_date} end_date: {end_date} ")
-        #         params = {
-        #             'category': category,
-        #             'start_date': start_date,
-        #             'end_date': end_date,
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': 'Skill work',
-        #             'activity_description': 'Shared laughs and made memories with friends.'
-        #         }
-
-
         # if task_value == 'NotesRecipeIngredientCount':
         #     ingredient, title= extract_from_template(
         #         "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",
@@ -1219,7 +1092,7 @@ if __name__ == '__main__':
         #           "new_name": new_name,
         #           "header": header,
         #         }
-          
+
         # if task_value == 'MarkorChangeNoteContent':
         #     result = extract_from_template(
         #         (
@@ -1822,7 +1695,7 @@ if __name__ == '__main__':
     #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
     #             "text_representation_type": recipe_type,
     #         }
-  
+
         # if task_value == 'SimpleCalendarDeleteEvents':
         #     year, month, day = extract_from_template(
         #         (
@@ -1957,3 +1830,93 @@ if __name__ == '__main__':
         #       'destination_folder': destination_folder,
         #       'noise_candidates': _NOTE_TITLES,
         #     }
+
+    # if task_value == 'RecipeDeleteMultipleRecipesWithNoise':
+    #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.', row['instruction'])
+    #     titles = list(titles)[0]
+    #     if titles is None:
+    #         continue
+    #
+    #     titles = titles.split(',')
+    #     if len(titles) > 0:
+    #         target_rows: list[sqlite_schema_utils.Recipe] = []
+    #         noise_rows: list[sqlite_schema_utils.Recipe] = []
+    #         for title in titles:
+    #             candidate = _generate_random_recipe()
+    #             candidate = dataclasses.replace(candidate, title=title)
+    #             target_rows.append(candidate)
+    #
+    #         while len(noise_rows) < 3:
+    #             candidate = _generate_random_recipe()
+    #             if not any([candidate.title == r.title for r in target_rows]) and not any(
+    #                     [candidate.title == r.title for r in noise_rows]):
+    #                 noise_rows.append(candidate)
+    #
+    #         params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+    #         }
+    #
+    # if task_value == 'RecipeDeleteMultipleRecipes':
+    #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.', row['instruction'])
+    #     titles = list(titles)[0]
+    #     if titles is None:
+    #         continue
+    #
+    #     titles = titles.split(',')
+    #     if len(titles) > 0:
+    #         target_rows: list[sqlite_schema_utils.Recipe] = []
+    #         for title in titles:
+    #             candidate = _generate_random_recipe()
+    #             candidate = dataclasses.replace(candidate, title=title)
+    #             target_rows.append(candidate)
+    #
+    #         params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+    #         }
+    #
+    # if task_value == 'RecipeDeleteSingleRecipe':
+    #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.', row['instruction'])
+    #     titles = list(titles)[0]
+    #     if titles is None:
+    #         continue
+    #
+    #     titles = titles.split(',')
+    #     if len(titles) > 0:
+    #         target_rows: list[sqlite_schema_utils.Recipe] = []
+    #         for title in titles:
+    #             candidate = _generate_random_recipe()
+    #             candidate = dataclasses.replace(candidate, title=title)
+    #             target_rows.append(candidate)
+    #
+    #         params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #             # sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+    #         }
+    #
+    # if task_value == 'RecipeDeleteSingleWithRecipeWithNoise':
+    #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.', row['instruction'])
+    #     titles = list(titles)[0]
+    #     if titles is None:
+    #         continue
+    #
+    #     titles = titles.split(',')
+    #     if len(titles) > 0:
+    #         target_rows: list[sqlite_schema_utils.Recipe] = []
+    #         noise_rows: list[sqlite_schema_utils.Recipe] = []
+    #         for title in titles:
+    #             candidate = _generate_random_recipe()
+    #             candidate = dataclasses.replace(candidate, title=title)
+    #             target_rows.append(candidate)
+    #
+    #         while len(noise_rows) < 3:
+    #             candidate = _generate_random_recipe()
+    #             if not any([candidate.title == r.title for r in target_rows]) and not any(
+    #                     [candidate.title == r.title for r in noise_rows]):
+    #                 noise_rows.append(candidate)
+    #
+    #         params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+    #         }
