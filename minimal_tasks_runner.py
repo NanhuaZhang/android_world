@@ -49,7 +49,7 @@ import subprocess
 from android_world.task_evals.single.calendar import calendar_utils
 from android_world.task_evals.single.calendar.calendar import generate_noise_events, _REPEAT_INTERVALS
 from android_world.task_evals.single.retro_music import _SONGS, _generate_playlist_name
-from android_world.task_evals.utils import sqlite_schema_utils
+from android_world.task_evals.utils import receipt_generator, sqlite_schema_utils
 from android_world.utils.datetime_utils import create_random_october_2023_unix_ts, _create_unix_ts
 from android_world.task_evals.single.vlc import generate_file_name
 from android_world.task_evals.utils import sqlite_schema_utils, user_data_generation
