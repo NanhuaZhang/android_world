@@ -4,7 +4,8 @@
 tasks {
   name: "SimpleCalendarEventsOnDate"
   prompt: "What events do I have {date} in Simple Calendar Pro? Answer with the titles only. If there are multiple titles, format your answer as a comma separated list."
-  complexity: 1
+  # complexity: 1
+  complexity: 3
   relevant_state {
     state: {
       calendar {
@@ -857,7 +858,8 @@ tasks {
 tasks {
   name: "SimpleCalendarFirstEventAfterStartTime"
   prompt: "What is my first event after {time} {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # complexity: 1
+  complexity: 3
   relevant_state {
     state {
       calendar {

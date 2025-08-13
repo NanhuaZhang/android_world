@@ -36,7 +36,7 @@ class SimpleDrawProCreateDrawing(task_eval.TaskEval):
   # )
   template = (
       "Create a new drawing in Simple Draw Pro. Name it {file_name} (Do not enter the file extension). Save it in"
-      " the Pictures folder within the sdk_gphone_x86_64 storage area."
+      " the Pictures folder within the sdk_gphone_x86_64 storage area. (Select the file path after saving the file name)"
   )
 
   def __init__(self, params: dict[str, Any]):

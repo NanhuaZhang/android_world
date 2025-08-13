@@ -65,6 +65,7 @@ def _find_adb_directory() -> str:
       os.path.expanduser('~/Library/Android/sdk/platform-tools/adb'),
       os.path.expanduser('~/Android/Sdk/platform-tools/adb'),
       os.path.expanduser('~/Android/platform-tools/adb'),
+      os.path.expanduser('C:\\Users\\Appen\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe'),
   ]
   for path in potential_paths:
     if os.path.isfile(path):
