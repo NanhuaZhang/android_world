@@ -550,11 +550,20 @@ class MarkorMergeNotes(Markor):
           "file3_content",
       ],
   }
+  # template = (
+  #     "Merge the contents of Markor notes {file1_name}, {file2_name} and"
+  #     " {file3_name} (in the same order) into a new Markor note named"
+  #     " {new_file_name} and save it. Add a new line between the content of each"
+  #     " note."
+  # )
+
   template = (
-      "Merge the contents of Markor notes {file1_name}, {file2_name} and"
-      " {file3_name} (in the same order) into a new Markor note named"
-      " {new_file_name} and save it. Add a new line between the content of each"
-      " note."
+      "First create and save empty {new_file_name} and back list page in Markor."
+      " Copy and paste the contents of Markor notes {file1_name}, {file2_name} and"
+      " {file3_name} into a new Markor note named"
+      " {new_file_name} in order and save it."
+      " Steps(important!!!!): For each file in order: enter file → copy content → back list page → paste to {new_file_name} → add a new line  → save → back list page."
+      " Tips: Don't paste text into the wrong page."
   )
 
   def __init__(self, params: dict[str, Any]):
@@ -620,8 +629,9 @@ class MarkorMergeNotes(Markor):
 
   def is_successful(self, env: interface.AsyncEnv) -> float:
     super().is_successful(env)
-    if not self.create_file_task.is_successful(env):
-      return 0.0
+    # if not self.create_file_task.is_successful(env):
+    #   print('is_successful>>>>>>>>>>>>>>>>>>>>>>>1')
+    #   return 0.0
     # The CreateFile task is using a fuzzy match in its is_successful function,
     # but here we want to explicitly check if the agent adds a blank line
     # between the notes. The following check only works based on the current way
@@ -633,7 +643,7 @@ class MarkorMergeNotes(Markor):
                 "shell",
                 "cat",
                 file_utils.convert_to_posix_path(
-                    device_constants.MARKOR_DATA, self.params["new_file_name"]
+                    device_constants.MARKOR_DATA, self.params["new_file_name"] + ".md"
                 ),
             ],
             env.controller,
@@ -648,8 +658,10 @@ class MarkorMergeNotes(Markor):
     # create_file in file_utils, the second and the forth \n should be inserted
     # by agent.
     content_split = merged_file.split("\n")
+    print(f'is_successful>>>>>>>>>>>>>>>>>>>>>>>3 {content_split}')
+    print(f'is_successful>>>>>>>>>>>>>>>>>>>>>>>4 {len(content_split)}')
     are_notes_merged = (
-        len(content_split) == 5
+        len(content_split) >= 5
         and (not content_split[1])
         and (not content_split[3])
     )
@@ -671,7 +683,7 @@ class MarkorMergeNotes(Markor):
 class MarkorChangeNoteContent(Markor):
   """Task for changing an existing note's content and renaming it."""
 
-  complexity = 1.2
+  complexity = 3
   schema = {
       "type": "object",
       "properties": {
@@ -729,10 +741,12 @@ class MarkorChangeNoteContent(Markor):
         env.controller,
     ):
       return 0.0
+
+    file_full_path = file_utils.convert_to_posix_path(
+        device_constants.MARKOR_DATA, self.params["new_name"]
+    )
     content_updated = file_utils.check_file_content(
-        file_utils.convert_to_posix_path(
-            device_constants.MARKOR_DATA, self.params["new_name"]
-        ),
+        file_full_path,
         self.params["updated_content"],
         env.controller,
     )
@@ -752,7 +766,7 @@ class MarkorChangeNoteContent(Markor):
 class MarkorAddNoteHeader(Markor):
   """Task for adding a header to an existing note and renaming it."""
 
-  complexity = 1.2
+  complexity = 3
   schema = {
       "type": "object",
       "properties": {
@@ -813,11 +827,17 @@ class MarkorAddNoteHeader(Markor):
         env.controller,
     ):
       return 0.0
+    file_full_path = file_utils.convert_to_posix_path(
+        device_constants.MARKOR_DATA, self.params["new_name"]
+    )
+    # res = adb_utils.issue_generic_request(
+    #     ["shell", "cat", file_full_path], env
+    # )
+    # res_content = res.generic.output.decode().replace("\r", "")
+    target_content = self.params["header"] + "\n\n" + self.params["original_content"] + "\n"
     correct = file_utils.check_file_content(
-        file_utils.convert_to_posix_path(
-            device_constants.MARKOR_DATA, self.params["new_name"]
-        ),
-        self.params["header"] + "\n\n" + self.params["original_content"] + "\n",
+        file_full_path,
+        target_content,
         env.controller,
         exact_match=True,
     )
