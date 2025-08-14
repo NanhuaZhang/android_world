@@ -647,24 +647,24 @@ def _main() -> None:
         #             'activity_description': 'Wandered off the beaten path.'
         #         }
         #
-        # if task_value == 'SportsTrackerActivitiesOnDate':
-        #     date= extract_from_template(
-        #         "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
-        #     row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date} ")
-        #         params = {
-        #             'category': 'cycling',
-        #             'date': date,
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': 'cycling',
-        #             'activity_description': 'Shared laughs and made memories with friends.'
-        #         }
-        #
+        if task_value == 'SportsTrackerActivitiesOnDate':
+            date= extract_from_template(
+                "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
+            row['instruction'])
+            date = list(date)[0]
+            if date is not None:
+                print(f"date: {date} ")
+                params = {
+                    'category': 'cycling',
+                    'date': date,
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': 'cycling',
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
+        
         # if task_value == 'SportsTrackerActivityDuration':
         #     category,date= extract_from_template(
         #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
@@ -682,23 +682,116 @@ def _main() -> None:
         #             'activity_description': 'Shared laughs and made memories with friends.'
         #         }
         #
-        # if task_value == 'SportsTrackerLongestDistanceActivity':
-        #     category= extract_from_template(
-        #         "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
-        #     category = list(category)[0]
-        #     if category is not None:
-        #         print(f"category: {category} ")
-        #         params = {
-        #             'category': category,
-        #             'start_date': "October 14 2023",
-        #             'duration': '30',
-        #             'distance': '300',
-        #             'start_time': '11:00am',
-        #             'elevation': '100',
-        #             'activity_name': category,
-        #             'activity_description': 'Shared laughs and made memories with friends.'
-        #         }
-        #
+        if task_value == 'SportsTrackerLongestDistanceActivity':
+            category= extract_from_template(
+                "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
+            category = list(category)[0]
+            if category is not None:
+                print(f"category: {category} ")
+                params = {
+                    'category': category,
+                    'start_date': "October 14 2023",
+                    'duration': '30',
+                    'distance': '300',
+                    'start_time': '11:00am',
+                    'elevation': '100',
+                    'activity_name': category,
+                    'activity_description': 'Shared laughs and made memories with friends.'
+                }
+
+        if task_value == 'SportsTrackerTotalDurationForCategoryThisWeek':
+            category= extract_from_template(
+                "What was the total duration of {category} activities in the OpenTracks app this week? Assume the week starts from Monday. Express your answer in minutes as a single integer.",
+                row['instruction']
+            )
+            category = list(category)[0]
+            if category is not None:
+                print(f"category: {category} ")
+                params = {
+                    'category': category,
+                    'start_date': random.choice([
+                        "October 9 2023",
+                        "October 10 2023",
+                        "October 11 2023",
+                        "October 12 2023",
+                        "October 13 2023",
+                        "October 14 2023",
+                        "October 15 2023"
+                    ]),
+                    'duration': random.choice([
+                        "15",
+                        "30",
+                        "45",
+                        "60",
+                        "90",
+                        "120",
+                        "40",
+                        "50",
+                        "75",
+                        "80",
+                        "20",
+                        "105",
+                        "135"
+                    ]),
+                    'distance': random.choice([
+                        "100",
+                        "300",
+                        "500",
+                        "800",
+                        "1000",
+                        "1200",
+                        "1500",
+                        "2000",
+                        "2500",
+                        "3000"
+                    ]),
+                    'start_time': random.choice([
+                        "8:00am",
+                        "10:30am",
+                        "5:00pm",
+                        "6:30am",
+                        "9:45am",
+                        "2:15pm",
+                        "7:00am",
+                        "11:00am",
+                        "4:00pm",
+                        "1:30pm"
+                    ]),
+                    'elevation': random.choice([
+                        "50",
+                        "100",
+                        "250",
+                        "150",
+                        "75",
+                        "300",
+                        "200"
+                    ]),
+                    'activity_name': random.choice([
+                        "More tired than usual today",
+                        "Need more strength and conditioning",
+                        "Slow day",
+                        "Laps around the lake",
+                        "Trying and failing to keep up with John",
+                        "Quick outing",
+                        "Recovery day",
+                        "Active Rest Day",
+                        "Skill work"
+                    ]),
+                    'activity_description': random.choice([
+                        "Shared laughs and made memories with friends.",
+                        "Enjoyed a fun outing with good company.",
+                        "Had a blast with my favorite people.",
+                        "Created lasting memories that I'll cherish.",
+                        "Experienced something unforgettable.",
+                        "Captured moments that will bring a smile to my face.",
+                        "Wandered off the beaten path.",
+                        "Ventured into uncharted territory.",
+                        "Stepped outside my comfort zone.",
+                        "Pushed my boundaries and tried something different.",
+                        "Tested my limits and grew as a person."
+                    ]),
+                }
+        
         # if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
         #     category,start_date,end_date= extract_from_template(
         #         "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
@@ -821,7 +914,8 @@ def _main() -> None:
                 # 将 datetime 对象转换为 Unix 时间戳
                 unix_timestamp = int(dt.timestamp()) + (8*60*60)
                 event: sqlite_schema_utils.CalendarEvent = events_generator.generate_event(
-                    unix_timestamp
+                    unix_timestamp,
+                    event_title
                 )
                 noise_events = generate_noise_events(
                     [event],
@@ -850,12 +944,12 @@ def _main() -> None:
 
         task = task_type(params)
         task.initialize_task(env)
-        openai_agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
-        openai4o_agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
-        doubao_agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        agent = openai_agent if _AGENT_TYPE.value == 'openai' else doubao_agent
+
+        agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        if _AGENT_TYPE.value == 'openai':
+            agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
         if _AGENT_TYPE.value == 'openai4o':
-            agent = openai4o_agent
+            agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
 
         print('Goal: ' + str(task.goal))
         is_done = False
