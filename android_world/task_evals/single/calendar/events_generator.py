@@ -67,7 +67,7 @@ ADDITIONAL_NOTES = [
 ]
 
 
-def generate_event(start_time: int) -> sqlite_schema_utils.CalendarEvent:
+def generate_event(start_time: int, title: str = None) -> sqlite_schema_utils.CalendarEvent:
   """Generates a realistic calendar event.
 
   Args:
@@ -77,10 +77,12 @@ def generate_event(start_time: int) -> sqlite_schema_utils.CalendarEvent:
     The event with random parameters.
   """
   end_time = start_time + (random.choice([15, 30, 45, 60]) * 60)
+  if title is None:
+    title = generate_event_title()
   return sqlite_schema_utils.CalendarEvent(
       start_ts=start_time,
       end_ts=end_time,
-      title=generate_event_title(),
+      title=title,
       description=generate_event_description(),
   )
 
