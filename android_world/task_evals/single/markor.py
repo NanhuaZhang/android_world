@@ -562,8 +562,8 @@ class MarkorMergeNotes(Markor):
       " Copy and paste the contents of Markor notes {file1_name}, {file2_name} and"
       " {file3_name} into a new Markor note named"
       " {new_file_name} in order and save it."
-      " Steps(important!!!!): For each file in order: enter file → copy content → back list page → paste to {new_file_name} → add a new line  → save → back list page."
-      " Tips: Don't paste text into the wrong page."
+      " Steps(important!!!!): For each file (count 3 files) in order: enter file → copy content → don't edit content and back list page → enter {new_file_name} → paste content → add one new line → save → back list page."
+      " Tips(important!!!!): Strictly follow the required steps"
   )
 
   def __init__(self, params: dict[str, Any]):

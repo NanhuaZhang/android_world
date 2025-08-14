@@ -370,10 +370,28 @@ class ExpenseAddMultipleFromGallery(_ExpenseAddMultiple):
 
   @property
   def goal(self) -> str:
-    return (
-        'Add the expenses from expenses.jpg in Simple Gallery Pro to '
-        f'{_APP_NAME}.'
+    text_repr = _get_expense_rows_as_text(
+        self.params[sqlite_validators.ROW_OBJECTS],
+        self.params[_TEXT_REPRESENTATION_TYPE],
     )
+    return (
+      "Add the expenses from expenses.jpg in Simple Gallery Pro to pro expense."
+      f" Steps(important!!!!!): There is no OCR function in the app, you need to recognize the text ({text_repr}) on the image yourself,"
+      " There are three expense records on the picture, then open pro expense and add the expenses based on the text content."
+      " The expense category list can be scrolled left and right, and there is no need to enter the $ symbol in the amount input box"
+    )
+
+  # @property
+  # def goal(self) -> str:
+  #   text_repr = _get_expense_rows_as_text(
+  #       self.params[sqlite_validators.ROW_OBJECTS],
+  #       self.params[_TEXT_REPRESENTATION_TYPE],
+  #   )
+  #   return (
+  #     "Add the expenses from expenses.jpg in Simple Gallery Pro to pro expense. (open the pro expense a after opening image)"
+  #     f"Add the following expenses into the {_APP_NAME}:\n{text_repr}. (The category list can be scrolled left and right, and there is no need to enter the $ symbol in the amount input box)"
+  #   )
+
 
   def initialize_task(self, env: interface.AsyncEnv):
     super().initialize_task(env)

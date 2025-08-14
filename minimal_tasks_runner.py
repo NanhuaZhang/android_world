@@ -780,6 +780,69 @@ def _main() -> None:
                     'noise_files1': [generate_file_name() for _ in range(2)],
                     'noise_files2': [generate_file_name() for _ in range(2)],
                 }
+        
+        if task_value == 'MarkorMergeNotes':
+          options = extract_from_template(
+            (
+                "Merge the contents of Markor notes {file1_name}, {file2_name} and"
+                " {file3_name} (in the same order) into a new Markor note named"
+                " {new_file_name} and save it. Add a new line between the content of each"
+                " note."
+            ),
+            row['instruction']
+          )
+          if options is not None:
+            file1_name, file2_name, file3_name, new_file_name = options
+            params = {
+              'file1_name': file1_name,
+              'file2_name': file2_name,
+              'file3_name': file3_name,
+              'new_file_name': new_file_name,
+              "file1_content": user_data_generation.generate_random_string(20),
+              "file2_content": user_data_generation.generate_random_string(20),
+              "file3_content": user_data_generation.generate_random_string(20),
+            }
+
+        if task_value == 'SimpleCalendarDeleteOneEvent':
+            year, month, day, hour, event_title = extract_from_template(
+                (
+                    "In Simple Calendar Pro, delete the calendar event on"
+                    " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
+                ),
+                row['instruction']
+            )
+            if year is not None and month is not None and day is not None and hour is not None and event_title is not None:
+                year = int(year)
+                month = int(month)
+                day = int(day)
+                hour = int(hour)
+                # 创建一个 datetime 对象
+                dt = datetime.datetime(year, month, day, hour)
+                # 将 datetime 对象转换为 Unix 时间戳
+                unix_timestamp = int(dt.timestamp()) + (8*60*60)
+                event: sqlite_schema_utils.CalendarEvent = events_generator.generate_event(
+                    unix_timestamp
+                )
+                noise_events = generate_noise_events(
+                    [event],
+                    5,
+                    filter_fn=(
+                        lambda candidate: (candidate.start_datetime != event.start_datetime)
+                        and (candidate.title != event.title)
+                    ),
+                )
+                params = {
+                    'year': year,
+                    'month': month,
+                    'day': day,
+                    'hour': hour,
+                    'duration_mins': event.duration_mins,
+                    'event_title': event.title,
+                    'event_description': event.description,
+                    sqlite_validators.ROW_OBJECTS: [event],
+                    sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+                }
+
         if params is None:
             continue
 
@@ -1695,44 +1758,6 @@ if __name__ == '__main__':
         #             'month': month,
         #             'day': day,
         #             sqlite_validators.ROW_OBJECTS: events,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
-        #         }
-
-        # if task_value == 'SimpleCalendarDeleteOneEvent':
-        #     year, month, day, hour, event_title = extract_from_template(
-        #         (
-        #             "In Simple Calendar Pro, delete the calendar event on"
-        #             " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
-        #         ),
-        #         row['instruction']
-        #     )
-        #     if year is not None and month is not None and day is not None and hour is not None and event_title is not None:
-        #         year = int(year)
-        #         month = int(month)
-        #         day = int(day)
-        #         hour = int(hour)
-        #         event: sqlite_schema_utils.CalendarEvent = events_generator.generate_event(
-        #             datetime_utils.create_random_october_2023_unix_ts(
-        #               start_day=day, end_day=day, start_hour=hour
-        #             )
-        #         )
-        #         noise_events = generate_noise_events(
-        #             [event],
-        #             5,
-        #             filter_fn=(
-        #                 lambda candidate: (candidate.start_datetime != event.start_datetime)
-        #                 and (candidate.title != event.title)
-        #             ),
-        #         )
-        #         params = {
-        #             'year': year,
-        #             'month': month,
-        #             'day': day,
-        #             'hour': hour,
-        #             'duration_mins': event.duration_mins,
-        #             'event_title': event.title,
-        #             'event_description': event.description,
-        #             sqlite_validators.ROW_OBJECTS: [event],
         #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
         #         }
 
