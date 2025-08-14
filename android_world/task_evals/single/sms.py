@@ -251,7 +251,7 @@ class SimpleSmsResend(sms_validators.SimpleSMSSendSms):
 
   complexity = 1.2
   # template = "Resend the message I just sent to {name} in Simple SMS Messenger."
-  template = "Resend the message I just sent to {name} in Simple SMS Messenger. Don't copy message, input the message and resend it"
+  template = "Resend the message I just sent to {name} in Simple SMS Messenger. Don't copy message, input the message and send it"
 
   schema = {
       "type": "object",

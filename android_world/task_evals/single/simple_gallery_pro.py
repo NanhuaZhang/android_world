@@ -31,8 +31,13 @@ class SaveCopyOfReceiptTaskEval(task_eval.TaskEval):
 
   complexity = 2.6
 
+  # template = (
+  #     "In Simple Gallery Pro, copy {file_name} in DCIM and save a copy with the"
+  #     " same name in Download."
+  # )
+
   template = (
-      "In Simple Gallery Pro, copy {file_name} in DCIM and save a copy with the"
+      "In Simple Gallery Pro, copy (need open file) {file_name} in DCIM and save a copy with the"
       " same name in Download. Tips(important!!!!): Download is a directory at the same level as DCIM. You need to go to the other folder and find it, then click then 'OK' button." # then to the parent directory to
   )
 
