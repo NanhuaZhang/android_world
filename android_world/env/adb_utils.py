@@ -481,6 +481,8 @@ def type_text(
       this should be longer as it takes longer to type.
   """
   words = _split_words_and_newlines(text)
+  if text == "\n":
+    words = text
   for word in words:
     if word == '\n':
       logging.info('Found \\n, pressing enter button.')
