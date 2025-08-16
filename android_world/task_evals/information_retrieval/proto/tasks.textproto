@@ -1082,7 +1082,8 @@ tasks {
 
 tasks {
   name: "TasksDueOnDate"
-  prompt: "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
+  # prompt: "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
+  prompt: "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page, and filter tasks by due date."
   complexity: 1
   relevant_state {
     state: {
@@ -1200,8 +1201,9 @@ tasks {
 
 tasks {
   name: "TasksHighPriorityTasks"
-  prompt: "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # prompt: "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
+  prompt: "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list. Tips(important!!!!): 1. In the menu panel (the first button in footer left), 2. click the plus icon in the filters section, 3. filter next week tasks, save filter and back to tasks page."
+  complexity: 3
   relevant_state {
     state {
       tasks_app {
@@ -1320,8 +1322,9 @@ tasks {
 
 tasks {
   name: "TasksHighPriorityTasksDueOnDate"
-  prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list."
+  prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page. Each item is displayed with a date, determine whether the task date is on the specified date"
+  complexity: 2
   relevant_state {
     state {
       tasks_app {
@@ -1401,8 +1404,9 @@ tasks {
 
 tasks {
   name: "TasksDueNextWeek"
-  prompt: "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer."
-  complexity: 1
+  # prompt: "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer."
+  prompt: "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer. Tips(important!!!!): 1. In the menu panel (the first button in footer left), 2. click the plus icon in the filters section, 3. add start date and end date filter next week tasks, save filter and back to tasks page, 4. The count of filtered results needs to be subtracted from the count of completed."
+  complexity: 3
   relevant_state {
     state: {
       tasks_app {
@@ -1530,8 +1534,9 @@ tasks {
 
 tasks {
   name: "TasksCompletedTasksForDate"
-  prompt: "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # prompt: "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
+  prompt: "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list (e.g., title1, title2, title3). Each item is displayed with a date, determine whether the task date is on the specified date"
+  complexity: 2
   relevant_state {
     state: {
       tasks_app {
@@ -1677,8 +1682,9 @@ tasks {
 
 tasks {
   name: "TasksIncompleteTasksOnDate"
-  prompt: "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
-  complexity: 1
+  # prompt: "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list."
+  prompt: "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page. Each item is displayed with a date, determine whether the task date is on the specified date"
+  complexity: 2
   relevant_state {
     state: {
       tasks_app {
@@ -1829,7 +1835,8 @@ tasks {
 
 tasks {
   name: "SportsTrackerActivitiesOnDate"
-  prompt: "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list."
+  # prompt: "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list."
+  prompt: "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page, and filter activities by target time, which answers the activity category rather than the title."
   complexity: 2
   relevant_state {
     state {
@@ -2281,7 +2288,8 @@ tasks {
 
 tasks {
   name: "SportsTrackerActivityDuration"
-  prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer."
+  # prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer."
+  prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page."
   complexity: 2
   relevant_state {
     state {
@@ -2712,8 +2720,9 @@ tasks {
 
 tasks {
   name: "SportsTrackerTotalDurationForCategoryThisWeek"
-  prompt: "What was the total duration of {category} activities in the OpenTracks app this week? Assume the week starts from Monday. Express your answer in minutes as a single integer."
-  complexity: 1
+  # prompt: "What was the total duration of {category} activities in the OpenTracks app this week? Assume the week starts from Monday. Express your answer in minutes as a single integer."
+  prompt: "What was the total duration of {category} activities in the OpenTracks app this week? Assume the week starts from Monday. Express your answer in minutes as a single integer. (All categories in the filter panel are selected by default. Uncheck other unnecessary categories.)"
+  complexity: 2
   relevant_state {
     state {
       sports_activity_app {
@@ -2935,7 +2944,8 @@ tasks {
 
 tasks {
   name: "SportsTrackerTotalDistanceForCategoryOverInterval"
-  prompt: "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer."
+  # prompt: "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer."
+  prompt: "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page."
   complexity: 3
   relevant_state {
     state {

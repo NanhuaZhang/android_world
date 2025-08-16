@@ -330,14 +330,30 @@ class ExpenseAddMultipleFromMarkor(_ExpenseAddMultiple):
 
   complexity = 6
   n_rows = 2
-  n_rows_noise = 100
+  n_rows_noise = 0
+
+  # @property
+  # def goal(self) -> str:
+  #   return (
+  #       'Go through the transactions in my_expenses.txt in Markor. Log the '
+  #       f'reimbursable transactions in the {_APP_NAME}.'
+  #   )
+
 
   @property
   def goal(self) -> str:
-    return (
-        'Go through the transactions in my_expenses.txt in Markor. Log the '
-        f'reimbursable transactions in the {_APP_NAME}.'
+    text_repr = _get_expense_rows_as_text(
+        self.params[sqlite_validators.ROW_OBJECTS],
+        self.params[_TEXT_REPRESENTATION_TYPE],
     )
+    return (
+      "Go through the transactions in my_expenses.txt in Markor. Log the "
+      f"reimbursable transactions in the {_APP_NAME}."
+      f" Steps(important!!!!!): There is no OCR function in the app, you need to recognize the text ({text_repr}) on the file yourself,"
+      " There are two expense records on the file, then open pro expense and add the expenses based on the text content."
+      " The expense category list can be scrolled left and right, and there is no need to enter the $ symbol in the amount input box"
+    )
+
 
   def initialize_task(self, env: interface.AsyncEnv):
     super().initialize_task(env)

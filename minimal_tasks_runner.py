@@ -555,22 +555,79 @@ def _main() -> None:
         if len(retry_task) >0 and row['id'] not in retry_task:
             continue
 
-        # if row['id'] < 2630:
-        #     continue
         # if task_value == 'TasksDueNextWeek':
         #     extract_from_template(
         #         "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer.",
-        #         row['instruction'])
-        #
-        #     print(f"TasksDueNextWeek ")
+        #         row['instruction']
+        #     )
         #     params = {}
-        #
+        
         # if task_value == 'TasksHighPriorityTasks':
         #     extract_from_template(
-        #         "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",row['instruction'])
+        #         "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+        #         row['instruction']
+        #     )
         #     params = {
+        #       "task_title": random.choice([
+        #         "Complete project proposal",
+        #         "Review code changes",
+        #         "Schedule team meeting",
+        #         "Submit expense report",
+        #         "Update website content",
+        #         "Review quarterly goals",
+        #         "Organize files and folders",
+        #         "Draft marketing email",
+        #         "Attend networking event",
+        #         "Prepare presentation for meeting",
+        #         "Call client for follow-up",
+        #         "Research market trends"
+        #       ]),
+        #       "notes": random.choice([
+        #         "Remember to complete this task.",
+        #         "This task is important.",
+        #         "Don't forget to follow up on this task.",
+        #         "Double-check calculations.",
+        #         "Confirm meeting location.",
+        #         "Follow up with team members.",
+        #         "Prepare presentation slides.",
+        #         "Update project status.",
+        #         "Check email for updates.",
+        #         "Review feedback from client.",
+        #         "Complete paperwork.",
+        #         "Schedule follow-up meeting."
+        #       ]),
+        #       "due_date": random.choice([
+        #         "October 16 2023",
+        #         "October 17 2023",
+        #         "October 18 2023",
+        #         "October 19 2023",
+        #         "October 20 2023",
+        #         "October 21 2023",
+        #         "October 22 2023"
+        #       ]),
+        #       "time": random.choice([
+        #         "11:00am",
+        #         "1:30pm",
+        #         "9:45am",
+        #         "21:45",
+        #         "10:00am",
+        #         "3:15pm",
+        #         "12pm",
+        #         "6:30am",
+        #         "8:00pm",
+        #         "12am",
+        #         "5:20pm"
+        #       ]),
+        #       "hide_until_date": random.choice([
+        #         "October 10 2023",
+        #         "October 11 2023",
+        #         "October 12 2023",
+        #         "October 13 2023",
+        #         "October 14 2023",
+        #         "October 15 2023"
+        #       ])
         #     }
-        #
+        
         # if task_value == 'TasksHighPriorityTasksDueOnDate':
         #     date= extract_from_template(
         #         "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list.",
@@ -583,7 +640,7 @@ def _main() -> None:
         #             'date': date,
         #             'time': '5:00pm',
         #         }
-        #
+        
         # if task_value == 'TasksDueOnDate':
         #     date= extract_from_template(
         #         "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
@@ -597,7 +654,7 @@ def _main() -> None:
         #             'notes': 'Complete paperwork.',
         #             'importance': '0'
         #         }
-        #
+
         # if task_value == 'TasksIncompleteTasksOnDate':
         #     date= extract_from_template(
         #         "What incomplete tasks do I have still have to do by {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
@@ -612,7 +669,7 @@ def _main() -> None:
         #             'time': '9:45am',
         #             'importance': '2'
         #         }
-        #
+        
         # if task_value == 'TasksCompletedTasksForDate':
         #     date= extract_from_template(
         #         "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
@@ -621,13 +678,58 @@ def _main() -> None:
         #     if date is not None:
         #         print(f"date: {date} ")
         #         params = {
-        #             'title': 'Review code changes',
-        #             'date': date,
-        #             'notes': 'This is high priority.',
-        #             'completed_date': 'October 15 2023',
-        #             'time': '11:00am',
+        #           "title": random.choice([
+        #             "Complete project proposal",
+        #             "Review code changes",
+        #             "Schedule team meeting",
+        #             "Submit expense report",
+        #             "Update website content",
+        #             "Review quarterly goals",
+        #             "Organize files and folders",
+        #             "Draft marketing email",
+        #             "Attend networking event",
+        #             "Prepare presentation for meeting",
+        #             "Call client for follow-up",
+        #             "Research market trends"
+        #           ]),
+        #           "notes": random.choice([
+        #             "Remember to complete this task.",
+        #             "This task is important.",
+        #             "Don't forget to follow up on this task.",
+        #             "Double-check calculations.",
+        #             "Confirm meeting location.",
+        #             "Follow up with team members.",
+        #             "Prepare presentation slides.",
+        #             "Update project status.",
+        #             "Check email for updates.",
+        #             "Review feedback from client.",
+        #             "Complete paperwork.",
+        #             "Schedule follow-up meeting."
+        #           ]),
+        #           "date": date,
+        #           "time": random.choice([
+        #             "11:00am",
+        #             "1:30pm",
+        #             "9:45am",
+        #             "21:45",
+        #             "10:00am",
+        #             "3:15pm",
+        #             "12pm",
+        #             "6:30am",
+        #             "8:00pm",
+        #             "12am",
+        #             "5:20pm"
+        #           ]),
+        #           "completed_date": random.choice([
+        #             "October 10 2023",
+        #             "October 11 2023",
+        #             "October 12 2023",
+        #             "October 13 2023",
+        #             "October 14 2023",
+        #             "October 15 2023"
+        #           ])
         #         }
-        #
+        
 
         # if task_value == 'SportsTrackerActivitiesCountForWeek':
         #     category= extract_from_template(
@@ -936,6 +1038,9 @@ def _main() -> None:
                     sqlite_validators.ROW_OBJECTS: [event],
                     sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
                 }
+
+        if task_value == 'ExpenseAddMultipleFromMarkor':
+          params = task_type.generate_random_params()
 
         if params is None:
             continue

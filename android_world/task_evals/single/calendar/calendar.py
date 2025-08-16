@@ -331,9 +331,14 @@ class SimpleCalendarDeleteOneEvent(SimpleCalendarDeleteEvents):
   n_rows = 1
   # complexity = 1.2
   complexity = 3
+  # template = (
+  #     "In Simple Calendar Pro, delete the calendar event on"
+  #     " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
+  # )
   template = (
       "In Simple Calendar Pro, delete the calendar event on"
       " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
+      ". Tips(important!!!!): 1. Date title is clickable, 2. Long press the event to select and delete."
   )
 
   @classmethod

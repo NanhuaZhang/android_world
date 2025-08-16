@@ -2,41 +2,30 @@ import os
 import shutil
 
 # 根目录
-root_dir = "task_histories_receipt_delete/task_histories"
+root_dir = "task_histories"
 
-# 要删除的文件夹名称列表
-folders_to_delete = [
-    "683",
-    "1239",
-    "1472",
-    "1974",
-    "2239",
-    "2342",
-    "2395",
-    "2808",
-    "2908",
-    "2959",
-    "3061",
-    "3062",
-    "3316",
-    "3411",
-    "3614",
-    "3663",
-    "3764",
-    "4123",
-    "4220",
-    "4271",
-    "4322",
-    "4472",
-    "4522",
-    "4671",
-    "4768",
-    "4915",
-    "4963",
-    "5060",
-    "5254",
-    "5306"
-]
+# task_result
+task_result = {
+    "2821": 0,
+    "1711": 0,
+    "3228": 2,
+    "1768": 0,
+    "1934": 0,
+    "1599": 0,
+    "3127": 2,
+    "3777": 0,
+    "1486": 0,
+    "2670": 0,
+    "1431": 0,
+    "2043": 0,
+    "951": 0,
+    "278": 0,
+    "2515": 0,
+    "1134": 0,
+    "1309": 0
+}
+
+folders_to_delete = [key for key, value in task_result.items() if value == 2]
 
 for folder_name in folders_to_delete:
     folder_path = os.path.join(root_dir, folder_name)

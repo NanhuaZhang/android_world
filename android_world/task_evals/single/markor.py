@@ -557,13 +557,21 @@ class MarkorMergeNotes(Markor):
   #     " note."
   # )
 
+  # template = (
+  #     "First create and save empty {new_file_name} and back list page in Markor."
+  #     " Copy and paste the contents of Markor notes {file1_name}, {file2_name} and"
+  #     " {file3_name} into a new Markor note named"
+  #     " {new_file_name} in order and save it."
+  #     " Steps(important!!!!): For each file (count 3 files) in order: enter file → copy content → don't edit content and back list page → enter {new_file_name} → paste content → add one new line → save → back list page."
+  #     " Tips(important!!!!): Strictly follow the required steps"
+  # )
+
   template = (
-      "First create and save empty {new_file_name} and back list page in Markor."
-      " Copy and paste the contents of Markor notes {file1_name}, {file2_name} and"
-      " {file3_name} into a new Markor note named"
-      " {new_file_name} in order and save it."
-      " Steps(important!!!!): For each file (count 3 files) in order: enter file → copy content → don't edit content and back list page → enter {new_file_name} → paste content → add one new line → save → back list page."
-      " Tips(important!!!!): Strictly follow the required steps"
+      "1. In Markor, create a new empty note named {new_file_name}. Save it and return to the notes list screen."
+      " 2. Copy {file1_name} content and paste to {new_file_name}, use 'keyboard_enter' to add a new line, save."
+      " 3. Copy {file2_name} content and paste to {new_file_name}, use 'keyboard_enter' to add a new line, save."
+      " 4. Copy {file3_name} content and paste to {new_file_name}, save."
+      " Tips: After saving each time, return to the list page and do not perform other unnecessary operations."
   )
 
   def __init__(self, params: dict[str, Any]):
