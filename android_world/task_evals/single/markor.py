@@ -927,13 +927,27 @@ class MarkorTranscribeVideo(Markor):
   schema = file_validators.CreateFile.schema
   app_names = ("markor", "vlc")
 
+  # template = (
+  #     "Transcribe the contents of video {video_name} by watching it in VLC"
+  #     " player (located in Download) and writing the sequence of strings shown"
+  #     " on each frame to the text file {file_name} in Markor as a comma"
+  #     ' separated list. For example, if the first frame shows the text "edna"'
+  #     ' and the second frame shows the text "pineapple", then the text file'
+  #     ' should contain only the following text: "edna, pineapple".'
+  # )
   template = (
-      "Transcribe the contents of video {video_name} by watching it in VLC"
-      " player (located in Download) and writing the sequence of strings shown"
-      " on each frame to the text file {file_name} in Markor as a comma"
-      ' separated list. For example, if the first frame shows the text "edna"'
-      ' and the second frame shows the text "pineapple", then the text file'
-      ' should contain only the following text: "edna, pineapple".'
+    "Open VLC player (located in Download) and play the video {video_name}. "
+    "Carefully watch the entire video from start to finish, paying attention to any text that appears. "
+    "After the video ends, the screen will return back page, the video you just watched will have a check mark to indicate that you have watched it. "
+    "Now can Open the Markor App. "
+    "If Markor is already open, proceed directly to the next step. "
+    "In Markor, create a new text file (ignore the file suffix. change type to Plain Text) named {file_name} if it doesn't exist, or open it if it does. "
+    "Write {text} strings into this file as a comma-separated list. "
+    "Finally, please click the Save button to save the file. "
+    "For example, if the video showed the texts 'edna' and 'pineapple' at different times, "
+    "the file should contain: 'edna, pineapple'. "
+    "Ensure all identified text is included, even if Markor was opened before video transcription was complete. "
+    "The task is finished when all identified text has been written to the file in Markor."
   )
 
   def __init__(self, params: dict[str, Any]):
@@ -945,6 +959,7 @@ class MarkorTranscribeVideo(Markor):
   def initialize_task(self, env: interface.AsyncEnv) -> None:
     super().initialize_task(env)
     self.create_file_task.initialize_task(env)
+    print(f"[MarkorTranscribeVideo] initialize_task {self.params}")
     user_data_generation.write_video_file_to_device(
         self.params["video_name"],
         device_constants.DOWNLOAD_DATA,

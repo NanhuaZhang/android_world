@@ -32,3 +32,5 @@ task_histories/
 *.zip
 *.xml
 cost_token
+
+node_modules/

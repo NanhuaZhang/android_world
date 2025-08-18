@@ -552,8 +552,34 @@ def _main() -> None:
         task_type: Type[task_eval.TaskEval] = aw_registry[task_value]
         params = None
 
+        # if os.path.exists(os.path.join("./task_histories", str(row['id']))):
+        #     print(f"文件已存在 {row['id']}")
+        #     continue
+
         if len(retry_task) >0 and row['id'] not in retry_task:
             continue
+
+        # if task_value == 'MarkorTranscribeVideo':
+        #     video_name, file_name= extract_from_template(
+        #         "Transcribe the contents of video {video_name} by watching it in VLC player (located in Download) and writing the sequence of strings shown on each frame to the text file {file_name} in Markor as a comma separated list. For example, if the first frame shows the text \"edna\" and the second frame shows the text \"pineapple\", then the text file should contain only the following text: \"edna, pineapple\".",
+        #         row['instruction'])
+        #     if video_name is not None and file_name is not None:
+        #         print(f"currentTask metadata: video_name: {video_name}, file_name: {file_name} ")
+        #         messages = list(
+        #             random.sample(
+        #                 user_data_generation.COMMON_GIVEN_NAMES, random.randint(2, 4)
+        #             )
+        #         )
+        #         params = {
+        #             "file_name": file_name,
+        #             "text": ",".join(messages),
+        #             # Video specific.
+        #             "messages": messages,
+        #             "video_name": video_name,
+        #             "noise_files": [
+        #                 vlc.generate_file_name() for _ in range(random.randint(3, 10))
+        #             ],
+        #         }
 
         # if task_value == 'TasksDueNextWeek':
         #     extract_from_template(
