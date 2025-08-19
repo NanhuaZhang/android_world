@@ -670,6 +670,8 @@ class MarkorMergeNotes(Markor):
     print(f'is_successful>>>>>>>>>>>>>>>>>>>>>>>4 {len(content_split)}')
     are_notes_merged = (
         len(content_split) >= 5
+        and content_split[0] != content_split[2]
+        and content_split[2] != content_split[4]
         and (not content_split[1])
         and (not content_split[3])
     )
