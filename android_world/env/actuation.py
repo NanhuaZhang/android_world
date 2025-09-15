@@ -33,7 +33,7 @@ def execute_adb_action(
     screen_elements: list[Any],  # list[UIElement]
     screen_size: tuple[int, int],
     env: env_interface.AndroidEnvInterface,
-    status: any = None
+    status: any
 ) -> dict[str, str | ndarray | list[UIElement] | tuple[float, float]] | None:
   """Execute an action based on a JSONAction object.
 
@@ -158,7 +158,7 @@ def execute_adb_action(
         time.sleep(1.0)
 
       adb_utils.type_text(text, env, timeout_sec=10)
-      adb_utils.press_enter_button(env)
+      # adb_utils.press_enter_button(env)
       return step_data
     else:
       logging.warning(
@@ -256,7 +256,7 @@ def execute_adb_action(
       raise ValueError('No app name provided')
 
   elif action.action_type == 'wait':
-    time.sleep(5.0)
+    time.sleep(1.0)
 
   elif action.action_type == 'launch_adb_activity':
     if action.activity_nickname == 'app_drawer':
@@ -301,7 +301,7 @@ def find_and_click_element(
 
   ui_elements = env.get_ui_elements()
   screen_size = (0, 0)  # Unused, but required.
-  execute_adb_action(action, ui_elements, screen_size, env, {})
+  execute_adb_action(action, ui_elements, screen_size, env ,{})
 
 
 def _wait_and_find_click_element(
