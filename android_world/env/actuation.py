@@ -87,7 +87,7 @@ def execute_adb_action(
         click_y = None
         if action.index is not None:
           element = screen_elements[action.index]
-          if '/new_name' in element.resource_name or '/save_image_filename' in element.resource_name:
+          if element.resource_name is not None and ('/new_name' in element.resource_name or '/save_image_filename' in element.resource_name):
             adb_utils.issue_generic_request(
                 [
                     'shell',
