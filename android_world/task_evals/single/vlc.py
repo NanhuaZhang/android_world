@@ -88,7 +88,7 @@ class VlcCreatePlaylist(_VLC):
   """Task to create a playlist in VLC."""
 
   app_names = ['vlc']
-  complexity = 2.8
+  complexity = 4.0
   schema = {
       'type': 'object',
       'properties': {
@@ -165,7 +165,7 @@ class VlcCreateTwoPlaylists(task_eval.TaskEval):
   """Task to create two playlists in VLC."""
 
   app_names = ['vlc']
-  complexity = 2.8
+  complexity = 4.0
   schema = {
       'type': 'object',
       'properties': {
@@ -194,7 +194,7 @@ class VlcCreateTwoPlaylists(task_eval.TaskEval):
     self.task2_params = {
         'playlist_name': params['playlist_name2'],
         'files': params['files2'],
-        'noise_files': params['noise_files2'],
+        'noise_files': [],
     }
     self.task1 = VlcCreatePlaylist(self.task1_params)
     self.task2 = VlcCreatePlaylist(self.task2_params)
@@ -210,7 +210,14 @@ class VlcCreateTwoPlaylists(task_eval.TaskEval):
         f'create a playlist titled "{self.params["playlist_name2"]}" with the'
         f' following files in VLC, in order: {", ".join(self.params["files2"])}'
     )
-    return f'{goal1}. And then, {goal2}.'
+
+    # return f'{goal1}. And then, {goal2}.'
+    
+    return (
+      f'{goal1}. And then, {goal2}. '
+      '(The two playlists have nothing to do with each other.'
+      ' Important: When creating a playlist, do not uncheck anyone after selecting it, regardless of whether it is correct or not!!!!!!!)'
+    )
 
   def initialize_task(self, env: interface.AsyncEnv):
     super().initialize_task(env)
