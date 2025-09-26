@@ -29,6 +29,7 @@ import random
 import re
 from typing import Type
 
+from android_world.agents.humans.draw_pro_agent import DrawPro
 from android_world.task_evals.single import vlc
 from android_world.utils import datetime_utils
 import pandas as pd
@@ -175,6 +176,7 @@ def extract_sms_info(instruction):
 
     return number, message
 
+
 def extract_sms_number(instruction):
     # 提取电话号码（+ 和数字）
     number_match = re.search(r'\+?\d{10,}', instruction)
@@ -182,12 +184,14 @@ def extract_sms_number(instruction):
 
     return number
 
+
 def extract_sms_message(instruction):
     # 提取短信内容（在 message: 后）
     message_match = re.search(r'message:\s*(.+)', instruction)
     message = message_match.group(1).strip() if message_match else None
 
     return message
+
 
 def extract_contact_details(instruction):
     first = re.search(r'First Name:\s*([A-Za-z]+)', instruction)
@@ -345,6 +349,7 @@ def extract_vlc_playlist_create(instruction):
 
     return playlist_name, files
 
+
 def extract_retro_playlist_create(instruction):
     # 提取播放列表名称
     playlist_name_match = re.search(r'Create a playlist in Retro Music titled "([^"]+)"', instruction)
@@ -356,6 +361,7 @@ def extract_retro_playlist_create(instruction):
 
     return playlist_name, files
 
+
 def extract_retro_play(instruction):
     # 提取文件列表
     files_match = re.search(r'Add the following songs, in order, (.+)', instruction)
@@ -363,9 +369,10 @@ def extract_retro_play(instruction):
 
     return files
 
+
 def extract_expense_add_multiple(instruction):
     # 定义正则表达式
-    pattern_a = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$?(\d+(?:\.\d+)?)\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\n\n|$)'
+    pattern_a = r'Expense:\s*(.+?)\s*amount_dollars:\s*\$?(\d+(?:\.\d+)?)\s*category_name:\s*(.+?)\s*note:\s*(.+?)(?=\r\n|$)'
     pattern_b = r'(.+?)\|(\$?\d+(?:\.\d+)?)\|(.+?)\|(.+)'
 
     results = []
@@ -396,19 +403,21 @@ def extract_expense_add_multiple(instruction):
             type = "csv"
     return type, results
 
+
 def detect_recipe_type(text: str) -> str | None:
     stripped = text.strip()
-    
+
     # 如果第一行是表头，且包含竖线分隔
     first_line = stripped.splitlines()[0]
     if "|" in first_line and first_line.lower().startswith("title|description"):
         return "csv"
-    
+
     # 如果文本中有明显的 Recipe: 开头
     if "Recipe:" in stripped.splitlines()[0] or any(line.startswith("Recipe:") for line in stripped.splitlines()):
         return "text_block"
-    
+
     return None
+
 
 def parse_recipes(text: str):
     recipes = []
@@ -455,7 +464,7 @@ def parse_recipes(text: str):
             pass  # 找不到表头，忽略
 
     return recipe_type, recipes
-    
+
 
 def extract_expense_delete_details(instruction):
     # 找到冒号后的部分
@@ -471,6 +480,7 @@ def extract_expense_delete_details(instruction):
 def extract_from_template(template: str, text: str) -> tuple:
     result = parse(template, text)
     return result.named.values() if result else None
+
 
 def get_day_of_week(day_of_week):
     # 创建日期对象，假设 a 是当前日期的日
@@ -499,9 +509,9 @@ def get_day_of_week(day_of_week):
     target_date = current_date + datetime.timedelta(days=days_difference)
 
     return {
-      "year": target_date.year,
-      "month": target_date.month,
-      "day": target_date.day,
+        "year": target_date.year,
+        "month": target_date.month,
+        "day": target_date.day,
     }
 
 
@@ -526,13 +536,15 @@ def count_key_values(data: List[Dict[str, Any]], key: str, value: Optional[Any] 
         return counts.get(value, 0)
     return counts
 
+
 def read_csv():
     # 读取 CSV 文件
     df = pd.read_csv('output.csv')  # 替换为你的文件
     return df
 
-retry_task = []
-
+# retry_task = []
+retry_task =[]
+complete_task = []
 def _main() -> None:
     """Runs a single task."""
     env = env_launcher.load_and_setup_env(
@@ -556,7 +568,7 @@ def _main() -> None:
         #     print(f"文件已存在 {row['id']}")
         #     continue
 
-        if len(retry_task) >0 and row['id'] not in retry_task:
+        if len(retry_task) > 0 and row['id'] not in retry_task:
             continue
 
         # if task_value == 'MarkorTranscribeVideo':
@@ -587,7 +599,7 @@ def _main() -> None:
         #         row['instruction']
         #     )
         #     params = {}
-        
+
         # if task_value == 'TasksHighPriorityTasks':
         #     extract_from_template(
         #         "What are my high priority tasks in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
@@ -653,7 +665,7 @@ def _main() -> None:
         #         "October 15 2023"
         #       ])
         #     }
-        
+
         # if task_value == 'TasksHighPriorityTasksDueOnDate':
         #     date= extract_from_template(
         #         "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list.",
@@ -666,7 +678,7 @@ def _main() -> None:
         #             'date': date,
         #             'time': '5:00pm',
         #         }
-        
+
         # if task_value == 'TasksDueOnDate':
         #     date= extract_from_template(
         #         "What tasks do I have due {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
@@ -695,7 +707,7 @@ def _main() -> None:
         #             'time': '9:45am',
         #             'importance': '2'
         #         }
-        
+
         # if task_value == 'TasksCompletedTasksForDate':
         #     date= extract_from_template(
         #         "Which tasks have I completed for {date} in Tasks app? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
@@ -755,7 +767,7 @@ def _main() -> None:
         #             "October 15 2023"
         #           ])
         #         }
-        
+
 
         # if task_value == 'SportsTrackerActivitiesCountForWeek':
         #     category= extract_from_template(
@@ -775,24 +787,24 @@ def _main() -> None:
         #             'activity_description': 'Wandered off the beaten path.'
         #         }
         #
-        if task_value == 'SportsTrackerActivitiesOnDate':
-            date= extract_from_template(
-                "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
-            row['instruction'])
-            date = list(date)[0]
-            if date is not None:
-                print(f"date: {date} ")
-                params = {
-                    'category': 'cycling',
-                    'date': date,
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': 'cycling',
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
-        
+        # if task_value == 'SportsTrackerActivitiesOnDate':
+        #     date= extract_from_template(
+        #         "What activities did I do {date} in the OpenTracks app? Answer with the activity type only. If there are multiple types, format your answer in a comma separated list.",
+        #     row['instruction'])
+        #     date = list(date)[0]
+        #     if date is not None:
+        #         print(f"date: {date} ")
+        #         params = {
+        #             'category': 'cycling',
+        #             'date': date,
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': 'cycling',
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
+
         # if task_value == 'SportsTrackerActivityDuration':
         #     category,date= extract_from_template(
         #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
@@ -810,116 +822,116 @@ def _main() -> None:
         #             'activity_description': 'Shared laughs and made memories with friends.'
         #         }
         #
-        if task_value == 'SportsTrackerLongestDistanceActivity':
-            category= extract_from_template(
-                "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
-            category = list(category)[0]
-            if category is not None:
-                print(f"category: {category} ")
-                params = {
-                    'category': category,
-                    'start_date': "October 14 2023",
-                    'duration': '30',
-                    'distance': '300',
-                    'start_time': '11:00am',
-                    'elevation': '100',
-                    'activity_name': category,
-                    'activity_description': 'Shared laughs and made memories with friends.'
-                }
+        # if task_value == 'SportsTrackerLongestDistanceActivity':
+        #     category= extract_from_template(
+        #         "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer.",            row['instruction'])
+        #     category = list(category)[0]
+        #     if category is not None:
+        #         print(f"category: {category} ")
+        #         params = {
+        #             'category': category,
+        #             'start_date': "October 14 2023",
+        #             'duration': '30',
+        #             'distance': '300',
+        #             'start_time': '11:00am',
+        #             'elevation': '100',
+        #             'activity_name': category,
+        #             'activity_description': 'Shared laughs and made memories with friends.'
+        #         }
 
-        if task_value == 'SportsTrackerTotalDurationForCategoryThisWeek':
-            category= extract_from_template(
-                "What was the total duration of {category} activities in the OpenTracks app this week? Assume the week starts from Monday. Express your answer in minutes as a single integer.",
-                row['instruction']
-            )
-            category = list(category)[0]
-            if category is not None:
-                print(f"category: {category} ")
-                params = {
-                    'category': category,
-                    'start_date': random.choice([
-                        "October 9 2023",
-                        "October 10 2023",
-                        "October 11 2023",
-                        "October 12 2023",
-                        "October 13 2023",
-                        "October 14 2023",
-                        "October 15 2023"
-                    ]),
-                    'duration': random.choice([
-                        "15",
-                        "30",
-                        "45",
-                        "60",
-                        "90",
-                        "120",
-                        "40",
-                        "50",
-                        "75",
-                        "80",
-                        "20",
-                        "105",
-                        "135"
-                    ]),
-                    'distance': random.choice([
-                        "100",
-                        "300",
-                        "500",
-                        "800",
-                        "1000",
-                        "1200",
-                        "1500",
-                        "2000",
-                        "2500",
-                        "3000"
-                    ]),
-                    'start_time': random.choice([
-                        "8:00am",
-                        "10:30am",
-                        "5:00pm",
-                        "6:30am",
-                        "9:45am",
-                        "2:15pm",
-                        "7:00am",
-                        "11:00am",
-                        "4:00pm",
-                        "1:30pm"
-                    ]),
-                    'elevation': random.choice([
-                        "50",
-                        "100",
-                        "250",
-                        "150",
-                        "75",
-                        "300",
-                        "200"
-                    ]),
-                    'activity_name': random.choice([
-                        "More tired than usual today",
-                        "Need more strength and conditioning",
-                        "Slow day",
-                        "Laps around the lake",
-                        "Trying and failing to keep up with John",
-                        "Quick outing",
-                        "Recovery day",
-                        "Active Rest Day",
-                        "Skill work"
-                    ]),
-                    'activity_description': random.choice([
-                        "Shared laughs and made memories with friends.",
-                        "Enjoyed a fun outing with good company.",
-                        "Had a blast with my favorite people.",
-                        "Created lasting memories that I'll cherish.",
-                        "Experienced something unforgettable.",
-                        "Captured moments that will bring a smile to my face.",
-                        "Wandered off the beaten path.",
-                        "Ventured into uncharted territory.",
-                        "Stepped outside my comfort zone.",
-                        "Pushed my boundaries and tried something different.",
-                        "Tested my limits and grew as a person."
-                    ]),
-                }
-        
+        # if task_value == 'SportsTrackerTotalDurationForCategoryThisWeek':
+        #     category= extract_from_template(
+        #         "What was the total duration of {category} activities in the OpenTracks app this week? Assume the week starts from Monday. Express your answer in minutes as a single integer.",
+        #         row['instruction']
+        #     )
+        #     category = list(category)[0]
+        #     if category is not None:
+        #         print(f"category: {category} ")
+        #         params = {
+        #             'category': category,
+        #             'start_date': random.choice([
+        #                 "October 9 2023",
+        #                 "October 10 2023",
+        #                 "October 11 2023",
+        #                 "October 12 2023",
+        #                 "October 13 2023",
+        #                 "October 14 2023",
+        #                 "October 15 2023"
+        #             ]),
+        #             'duration': random.choice([
+        #                 "15",
+        #                 "30",
+        #                 "45",
+        #                 "60",
+        #                 "90",
+        #                 "120",
+        #                 "40",
+        #                 "50",
+        #                 "75",
+        #                 "80",
+        #                 "20",
+        #                 "105",
+        #                 "135"
+        #             ]),
+        #             'distance': random.choice([
+        #                 "100",
+        #                 "300",
+        #                 "500",
+        #                 "800",
+        #                 "1000",
+        #                 "1200",
+        #                 "1500",
+        #                 "2000",
+        #                 "2500",
+        #                 "3000"
+        #             ]),
+        #             'start_time': random.choice([
+        #                 "8:00am",
+        #                 "10:30am",
+        #                 "5:00pm",
+        #                 "6:30am",
+        #                 "9:45am",
+        #                 "2:15pm",
+        #                 "7:00am",
+        #                 "11:00am",
+        #                 "4:00pm",
+        #                 "1:30pm"
+        #             ]),
+        #             'elevation': random.choice([
+        #                 "50",
+        #                 "100",
+        #                 "250",
+        #                 "150",
+        #                 "75",
+        #                 "300",
+        #                 "200"
+        #             ]),
+        #             'activity_name': random.choice([
+        #                 "More tired than usual today",
+        #                 "Need more strength and conditioning",
+        #                 "Slow day",
+        #                 "Laps around the lake",
+        #                 "Trying and failing to keep up with John",
+        #                 "Quick outing",
+        #                 "Recovery day",
+        #                 "Active Rest Day",
+        #                 "Skill work"
+        #             ]),
+        #             'activity_description': random.choice([
+        #                 "Shared laughs and made memories with friends.",
+        #                 "Enjoyed a fun outing with good company.",
+        #                 "Had a blast with my favorite people.",
+        #                 "Created lasting memories that I'll cherish.",
+        #                 "Experienced something unforgettable.",
+        #                 "Captured moments that will bring a smile to my face.",
+        #                 "Wandered off the beaten path.",
+        #                 "Ventured into uncharted territory.",
+        #                 "Stepped outside my comfort zone.",
+        #                 "Pushed my boundaries and tried something different.",
+        #                 "Tested my limits and grew as a person."
+        #             ]),
+        #         }
+
         # if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
         #     category,start_date,end_date= extract_from_template(
         #         "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
@@ -943,8 +955,8 @@ def _main() -> None:
         # ' directions.',row['instruction'])
         #     ingredient = list(ingredient)[0]
         #     if ingredient is not None:
-        #         noise = sqlite_sche ma_utils.get_random_items(
-        #             6,
+        #         noise = sqlite_schema_utils.get_random_items(
+        #             1,
         #             _generate_random_recipe,
         #             replacement=False,
         #             filter_fn=lambda r: ingredient not in r.directions.lower(),
@@ -964,109 +976,94 @@ def _main() -> None:
         #                 n_rows -= 1
         #         params = {
         #             sqlite_validators.ROW_OBJECTS: targets,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: [],
         #             'ingredient': ingredient,
         #         }
-        if task_value == 'VlcCreatePlaylist':
-          playlist_name,files = extract_from_template(
-              'Create a playlist titled "{playlist_name}" with the following files'
-              ' in VLC (located in Internal Memory/VLCVideos), in order: {files}'
-              ,
+        # if task_value == 'VlcCreatePlaylist':
+        #     playlist_name, files = extract_from_template(
+        #         'Create a playlist titled "{playlist_name}" with the following files'
+        #         ' in VLC (located in Internal Memory/VLCVideos), in order: {files}'
+        #         ,
+        #         row['instruction']
+        #     )
+        #
+        #     if playlist_name is not None and files is not None:
+        #         files = files.split(', ')
+        #         params = {
+        #             'playlist_name': playlist_name,
+        #             'files': files,
+        #             'noise_files': [generate_file_name() for _ in range(1)],
+        #         }
+
+        if task_value == 'SimpleDrawProCreateDrawing':
+          file_name = extract_from_template(
+            "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in the Pictures folder within the sdk_gphone_x86_64 storage area.",
             row['instruction']
           )
-
-          if playlist_name is not None and files is not None:
-              files = files.split(', ')
-              params = {
-                  'playlist_name': playlist_name,
-                  'files': files,
-                  'noise_files': [generate_file_name() for _ in range(2)],
-                }
-
-
-        if task_value == 'VlcCreateTwoPlaylists':
-            playlist_name1, files1,playlist_name2, files2= extract_from_template(
-                'Create a playlist titled "{playlist_name1}" with the following files in VLC (located in Internal Memory/VLCVideos), in order: {files1}. And then, create a playlist titled "{playlist_name2}" with the following files in VLC, in order: {files2}.',
-                row['instruction']
-            )
-
-            if playlist_name1 is not None and files1 is not None and playlist_name2 is not None and files2 is not None:
-                files1 = files1.split(', ')
-                files2 = files2.split(', ')
-                params = {
-                    'playlist_name1': playlist_name1,
-                    'files1': files1,
-                    'playlist_name2': playlist_name2,
-                    'files2': files2,
-                    'noise_files1': [generate_file_name() for _ in range(2)],
-                    'noise_files2': [generate_file_name() for _ in range(2)],
-                }
-        
-        if task_value == 'MarkorMergeNotes':
-          options = extract_from_template(
-            (
-                "Merge the contents of Markor notes {file1_name}, {file2_name} and"
-                " {file3_name} (in the same order) into a new Markor note named"
-                " {new_file_name} and save it. Add a new line between the content of each"
-                " note."
-            ),
-            row['instruction']
-          )
-          if options is not None:
-            file1_name, file2_name, file3_name, new_file_name = options
+          file_name = list(file_name)[0]
+          if file_name is not None:
             params = {
-              'file1_name': file1_name,
-              'file2_name': file2_name,
-              'file3_name': file3_name,
-              'new_file_name': new_file_name,
-              "file1_content": user_data_generation.generate_random_string(20),
-              "file2_content": user_data_generation.generate_random_string(20),
-              "file3_content": user_data_generation.generate_random_string(20),
+              'file_name': file_name,
+              'text': '',
             }
 
-        if task_value == 'SimpleCalendarDeleteOneEvent':
-            year, month, day, hour, event_title = extract_from_template(
-                (
-                    "In Simple Calendar Pro, delete the calendar event on"
-                    " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
-                ),
-                row['instruction']
-            )
-            if year is not None and month is not None and day is not None and hour is not None and event_title is not None:
-                year = int(year)
-                month = int(month)
-                day = int(day)
-                hour = int(hour)
-                # 创建一个 datetime 对象
-                dt = datetime.datetime(year, month, day, hour)
-                # 将 datetime 对象转换为 Unix 时间戳
-                unix_timestamp = int(dt.timestamp()) + (8*60*60)
-                event: sqlite_schema_utils.CalendarEvent = events_generator.generate_event(
-                    unix_timestamp,
-                    event_title
-                )
-                noise_events = generate_noise_events(
-                    [event],
-                    5,
-                    filter_fn=(
-                        lambda candidate: (candidate.start_datetime != event.start_datetime)
-                        and (candidate.title != event.title)
-                    ),
-                )
-                params = {
-                    'year': year,
-                    'month': month,
-                    'day': day,
-                    'hour': hour,
-                    'duration_mins': event.duration_mins,
-                    'event_title': event.title,
-                    'event_description': event.description,
-                    sqlite_validators.ROW_OBJECTS: [event],
-                    sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
-                }
-
-        if task_value == 'ExpenseAddMultipleFromMarkor':
-          params = task_type.generate_random_params()
+        # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
+        #     type, results = extract_expense_add_multiple(row['instruction'])
+        #     if type is not None and len(results) > 0:
+        #         target_rows: list[sqlite_schema_utils.Expense] = []
+        #         for result in results:
+        #             if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
+        #                 expense_unix_time_s = _get_random_timestamp()
+        #                 expense_unix_time_ms = expense_unix_time_s * 1000
+        #                 category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
+        #                 target_rows.append(sqlite_schema_utils.Expense(
+        #                     result['name'].strip("\n\r"),
+        #                     int(float(result['amount']) * 100),
+        #                     category_id,
+        #                     result['note'].strip("\n\r"),
+        #                     expense_unix_time_ms,
+        #                     expense_unix_time_ms,
+        #                 ))
+        #         noise_rows = sqlite_schema_utils.get_random_items(
+        #             10,
+        #             _generate_expense,
+        #             replacement=False,
+        #             filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+        #         )
+        #         params = {
+        #             sqlite_validators.ROW_OBJECTS: target_rows,
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+        #             'text_representation_type': type,
+        #         }
+        #
+        # if task_value == 'RecipeDeleteDuplicateRecipes':
+        #     rows = sqlite_schema_utils.get_random_items(
+        #         1+ 1,
+        #         _generate_random_recipe,
+        #         replacement=False,
+        #     )
+        #     target = rows.pop()
+        #     params = { sqlite_validators.ROW_OBJECTS: [target, target],
+        # sqlite_validators.NOISE_ROW_OBJECTS: rows,
+        #                }
+        #
+        # if task_value == 'VlcCreateTwoPlaylists':
+        #     playlist_name1, files1, playlist_name2, files2 = extract_from_template(
+        #         'Create a playlist titled "{playlist_name1}" with the following files in VLC (located in Internal Memory/VLCVideos), in order: {files1}. And then, create a playlist titled "{playlist_name2}" with the following files in VLC, in order: {files2}.',
+        #         row['instruction']
+        #     )
+        #     print(f'{playlist_name1} and {playlist_name2},{files1} and {files2}')
+        #     if playlist_name1 is not None and files1 is not None and playlist_name2 is not None and files2 is not None:
+        #         files1 = files1.split(', ')
+        #         files2 = files2.split(', ')
+        #         params = {
+        #             'playlist_name1': playlist_name1,
+        #             'files1': files1,
+        #             'playlist_name2': playlist_name2,
+        #             'files2': files2,
+        #             'noise_files1': [],
+        #             'noise_files2': [generate_file_name() for _ in range(0)],
+        #         }
 
         if params is None:
             continue
@@ -1076,23 +1073,26 @@ def _main() -> None:
         task = task_type(params)
         task.initialize_task(env)
 
-        agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        if _AGENT_TYPE.value == 'openai':
-            agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
-        if _AGENT_TYPE.value == 'openai4o':
-            agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
+        # agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        # if _AGENT_TYPE.value == 'openai':
+        #     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
+        # if _AGENT_TYPE.value == 'openai4o':
+        #     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
+        agent = DrawPro(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        agent.steps(params['file_name'])
+        agent_successful = True
 
         print('Goal: ' + str(task.goal))
-        is_done = False
-        for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
-            response = agent.step(task.goal)
-            if count_key_values(agent.history,'action','wait')>= 4:
-                break
-
-            if response.done:
-                is_done = True
-                break
-        agent_successful = is_done and task.is_successful(env) == 1
+        # is_done = False
+        # for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
+        #     response = agent.step(task.goal)
+        #     if count_key_values(agent.history, 'action', 'wait') >= 2:
+        #         break
+        #
+        #     if response.done:
+        #         is_done = True
+        #         break
+        # agent_successful = is_done and task.is_successful(env) == 1
 
         # 任务跑完后，保存执行历史
         save_task_history(agent, str(row['id']), task.goal, agent_successful)
@@ -1200,10 +1200,10 @@ def save_task_history(agent, task_id: str, task_goal: str, success: bool, output
 
         if step.get("action") == "status":
             if success:
-                if exist_retry_step:
+                # if exist_retry_step:
+                #     export['trajectory_type'] = 1
+                # else:
                     export['trajectory_type'] = 1
-                else:
-                    export['trajectory_type'] = 0
 
         # 两张截图：before/after
         for key in ("before_screenshot", 'before_screenshot_mark'):
@@ -1234,16 +1234,16 @@ def save_task_history(agent, task_id: str, task_goal: str, success: bool, output
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(export, f, ensure_ascii=False, indent=2)
     print(f"✅ Task history saved to {out_path}")
-    with open('cost_token', "w", encoding="utf-8") as f:
-        json.dump({
-            'prompt_tokens': sum(prompt_tokens),
-            'prompt_tokens_avg': sum(prompt_tokens) / len(prompt_tokens),
-            'completion_tokens': sum(completion_tokens),
-            'completion_tokens_avg': sum(completion_tokens) / len(completion_tokens)
-        }, f, ensure_ascii=False, indent=2)
+    # with open('cost_token', "w", encoding="utf-8") as f:
+    #     json.dump({
+    #         'prompt_tokens': sum(prompt_tokens),
+    #         'prompt_tokens_avg': sum(prompt_tokens) / len(prompt_tokens),
+    #         'completion_tokens': sum(completion_tokens),
+    #         'completion_tokens_avg': sum(completion_tokens) / len(completion_tokens)
+    #     }, f, ensure_ascii=False, indent=2)
 
-    print('消耗prompt_tokens Token：', sum(prompt_tokens))
-    print('消耗completion_tokens Token：', sum(completion_tokens))
+    # print('消耗prompt_tokens Token：', sum(prompt_tokens))
+    # print('消耗completion_tokens Token：', sum(completion_tokens))
 
 
 def main(argv: Sequence[str]) -> None:
@@ -1254,673 +1254,644 @@ def main(argv: Sequence[str]) -> None:
 if __name__ == '__main__':
     app.run(main)
 
-        # if task_value == 'ContactsAddContact':
-        #     name, number = extract_name_and_number(row['instruction'])
-        #     if name is not None and number is not None:
-        #         print(f"Name: {name}, Number: {number}")
-        #         params = {
-        #             'name': name,
-        #             'number': number
-        #         }
-        #
-        # if task_value == 'ContactsNewContactDraft':
-        #     result = extract_contact_details(row['instruction'])
-        #     if name is not None and number is not None:
-        #         print(f"Name: {result}")
-        #         params = {
-        #             "first": result['first_name'],
-        #             "last": result['last_name'],
-        #             "phone": result['phone'],
-        #             "phone_label": result['phone_label'],
-        #         }
+    # if task_value == 'ContactsAddContact':
+    #     name, number = extract_name_and_number(row['instruction'])
+    #     if name is not None and number is not None:
+    #         print(f"Name: {name}, Number: {number}")
+    #         params = {
+    #             'name': name,
+    #             'number': number
+    #         }
+    #
+    # if task_value == 'ContactsNewContactDraft':
+    #     result = extract_contact_details(row['instruction'])
+    #     if name is not None and number is not None:
+    #         print(f"Name: {result}")
+    #         params = {
+    #             "first": result['first_name'],
+    #             "last": result['last_name'],
+    #             "phone": result['phone'],
+    #             "phone_label": result['phone_label'],
+    #         }
 
-        # if task_value == 'NotesIsTodo':
-        #     title = extract_from_template(
-        #         "Is the note titled '{title}' in the Joplin app marked as a todo item? Respond with either 'True' if it is a todo or 'False' if not.",
-        #         row['instruction'])
-        #     title = list(title)[0]
-        #     if title is not None:
-        #         print(f"title: {title},")
-        #         params = {
-        #             'title': title,
-        #             'is_todo': "True",
-        #             'body': 'Buy milk, eggs, bread, and cereal from the grocery store.',
-        #             'folder': 'School'
-        #         }
-        #
-        # if task_value == 'NotesMeetingAttendeeCount':
-        #     title = extract_from_template(
-        #         "How many attendees were present in the meeting titled '{title}' in the Joplin app? Express your answer as just a single number.",
-        #         row['instruction'])
-        #     title = list(title)[0]
-        #     if title is not None:
-        #         print(f"title: {title},")
-        #         params = {
-        #             'title': title,
-        #             'attendee_count': '5',
-        #             'is_todo': "True",
-        #             'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
-        #         }
+    # if task_value == 'NotesIsTodo':
+    #     title = extract_from_template(
+    #         "Is the note titled '{title}' in the Joplin app marked as a todo item? Respond with either 'True' if it is a todo or 'False' if not.",
+    #         row['instruction'])
+    #     title = list(title)[0]
+    #     if title is not None:
+    #         print(f"title: {title},")
+    #         params = {
+    #             'title': title,
+    #             'is_todo': "True",
+    #             'body': 'Buy milk, eggs, bread, and cereal from the grocery store.',
+    #             'folder': 'School'
+    #         }
+    #
+    # if task_value == 'NotesMeetingAttendeeCount':
+    #     title = extract_from_template(
+    #         "How many attendees were present in the meeting titled '{title}' in the Joplin app? Express your answer as just a single number.",
+    #         row['instruction'])
+    #     title = list(title)[0]
+    #     if title is not None:
+    #         print(f"title: {title},")
+    #         params = {
+    #             'title': title,
+    #             'attendee_count': '5',
+    #             'is_todo': "True",
+    #             'body': 'Meeting Notes:\n- Discussed project milestones\n- Assigned action items to team members\n- Reviewed budget allocation\n- Decided on next meeting date\n- Attended by {attendee_count} participants\n',
+    #         }
 
-        # if task_value == 'NotesRecipeIngredientCount':
-        #     ingredient, title= extract_from_template(
-        #         "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",
-        #         row['instruction'])
-        #     if title is not None and ingredient is not None:
-        #         print(f"title: {title},ingredient{ingredient} ")
-        #         ingredient_quantity = '2 cups'
-        #         params = {
-        #             'title': title,
-        #             'ingredient_quantity': ingredient_quantity,
-        #             'ingredient': ingredient,
-        #             'body': f'Ingredients:\n- 1 cup all-purpose flour\n- 1/2 cup granulated sugar\n- {ingredient_quantity} {ingredient}\n- 1 teaspoon baking powder\n- 2 tablespoons unsalted butter\n- 1/4 teaspoon salt\n\nInstructions:\n1. Preheat oven to 350°F (175°C).\n2. In a mixing bowl, combine all-purpose flour, granulated sugar, and baking powder.\n3. Add unsalted butter and salt, mixing until well combined.\n4. Grease a baking dish and pour the mixture into it.\n5. Bake in preheated oven for 25-30 minutes, or until golden brown.\n6. Let cool for a few minutes before serving.\n',
-        #         }
+    # if task_value == 'NotesRecipeIngredientCount':
+    #     ingredient, title= extract_from_template(
+    #         "What quantity of {ingredient} do I need for the recipe '{title}' in the Joplin app? Express your answer in the format <amount> <unit> where both the amount and unit exactly match the format in the recipe.",
+    #         row['instruction'])
+    #     if title is not None and ingredient is not None:
+    #         print(f"title: {title},ingredient{ingredient} ")
+    #         ingredient_quantity = '2 cups'
+    #         params = {
+    #             'title': title,
+    #             'ingredient_quantity': ingredient_quantity,
+    #             'ingredient': ingredient,
+    #             'body': f'Ingredients:\n- 1 cup all-purpose flour\n- 1/2 cup granulated sugar\n- {ingredient_quantity} {ingredient}\n- 1 teaspoon baking powder\n- 2 tablespoons unsalted butter\n- 1/4 teaspoon salt\n\nInstructions:\n1. Preheat oven to 350°F (175°C).\n2. In a mixing bowl, combine all-purpose flour, granulated sugar, and baking powder.\n3. Add unsalted butter and salt, mixing until well combined.\n4. Grease a baking dish and pour the mixture into it.\n5. Bake in preheated oven for 25-30 minutes, or until golden brown.\n6. Let cool for a few minutes before serving.\n',
+    #         }
 
-        # if task_value == 'NotesTodoItemCount':
-        #     folder= extract_from_template(
-        #         "How many to-dos do I have in the '{folder}' folder in the Joplin app? Express your answer as just a single number.",
-        #         row['instruction'])
-        #     folder = list(folder)[0]
-        #     if folder is not None:
-        #         print(f"title: {folder} ")
-        #         params = {
-        #             'title': 'Personal Goals',
-        #             'folder': folder,
-        #             'body': 'Discuss project updates, assign tasks, and review deadlines.',
-        #         }
+    # if task_value == 'NotesTodoItemCount':
+    #     folder= extract_from_template(
+    #         "How many to-dos do I have in the '{folder}' folder in the Joplin app? Express your answer as just a single number.",
+    #         row['instruction'])
+    #     folder = list(folder)[0]
+    #     if folder is not None:
+    #         print(f"title: {folder} ")
+    #         params = {
+    #             'title': 'Personal Goals',
+    #             'folder': folder,
+    #             'body': 'Discuss project updates, assign tasks, and review deadlines.',
+    #         }
 
-        # if task_value == 'MarkorAddNoteHeader':
-        #     result = extract_from_template(
-        #         (
-        #             "Update the Markor note {original_name} by adding the following text,"
-        #             ' along with a new blank line before the existing content: "{header}",'
-        #             " and rename it to {new_name}."
-        #         ),
-        #         row['instruction']
-        #     )
-        #     if result is not None:
-        #       original_name, header, new_name = result
-        #       if original_name is not None and new_name is not None and header is not None:
-        #         original_content = generate_random_sentence()
-        #         params = {
-        #           "original_name": original_name,
-        #           "original_content": original_content,
-        #           "new_name": new_name,
-        #           "header": header,
-        #         }
+    # if task_value == 'MarkorAddNoteHeader':
+    #     result = extract_from_template(
+    #         (
+    #             "Update the Markor note {original_name} by adding the following text,"
+    #             ' along with a new blank line before the existing content: "{header}",'
+    #             " and rename it to {new_name}."
+    #         ),
+    #         row['instruction']
+    #     )
+    #     if result is not None:
+    #       original_name, header, new_name = result
+    #       if original_name is not None and new_name is not None and header is not None:
+    #         original_content = generate_random_sentence()
+    #         params = {
+    #           "original_name": original_name,
+    #           "original_content": original_content,
+    #           "new_name": new_name,
+    #           "header": header,
+    #         }
 
-        # if task_value == 'MarkorChangeNoteContent':
-        #     result = extract_from_template(
-        #         (
-        #             'Update the content of {original_name} to "{updated_content}" in Markor'
-        #             " and change its name to {new_name}."
-        #         ),
-        #         row['instruction']
-        #     )
-        #     if result is not None:
-        #       original_name, updated_content, new_name = result
-        #       if original_name is not None and new_name is not None and updated_content is not None:
-        #         params = {
-        #           "original_name": original_name,
-        #           "updated_content": updated_content,
-        #           "new_name": new_name,
-        #         }
+    # if task_value == 'MarkorChangeNoteContent':
+    #     result = extract_from_template(
+    #         (
+    #             'Update the content of {original_name} to "{updated_content}" in Markor'
+    #             " and change its name to {new_name}."
+    #         ),
+    #         row['instruction']
+    #     )
+    #     if result is not None:
+    #       original_name, updated_content, new_name = result
+    #       if original_name is not None and new_name is not None and updated_content is not None:
+    #         params = {
+    #           "original_name": original_name,
+    #           "updated_content": updated_content,
+    #           "new_name": new_name,
+    #         }
 
-        # if task_value == 'MarkorCreateNote':
-        #     file_name,text = extract_from_template(
-        #         "Create a new note in Markor named {file_name} with the following text: {text}",
-        #         row['instruction'])
-        #     if file_name is not None and text is not None:
-        #         print(f"text: {text},file_name:{file_name}")
-        #         params = {
-        #             'file_name': file_name,
-        #             'text': text,
-        #         }
-        #
-        # if task_value == 'MarkorCreateNoteAndSms':
-        #     file_name,text,number = extract_from_template(
-        #         "Create a new note in Markor named {file_name} with the following text:{text}. Share the entire content of the note with the phone number {number} via SMS using Simple SMS Messenger",
-        #         row['instruction'])
-        #     if file_name is not None and text is not None and number is not None:
-        #         print(f"text: {text},file_name:{file_name},number:{number}")
-        #         params = {
-        #             'file_name': file_name,
-        #             'text': text,
-        #             'number': number
-        #         }
-        #
-        # if task_value == 'MarkorCreateNoteFromClipboard':
-        #     file_name= extract_from_template(
-        #           "Create a note in Markor named {file_name}. Perform a paste operation in the note and save the note.",
-        #         row['instruction'])
-        #     file_name = list(file_name)[0]
-        #     if file_name is not None :
-        #         print(f"file_name:{file_name}")
-        #         params = {
-        #             'file_name': file_name,
-        #             'file_content':user_data_generation.generate_random_string(10)
-        #         }
-        #
-        # if task_value == 'SimpleCalendarAddOneEvent':
-        #     year, month, day, hour, title, description, duration = extract_calendar_event_info(row['instruction'])
-        #     if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None:
-        #         print(f"year: {year}, month: {month}")
-        #
-        #         start_ts = _create_unix_ts(day=day,hour=hour)
-        #         end_ts = start_ts + duration * 60
-        #         event = sqlite_schema_utils.CalendarEvent(
-        #             start_ts=start_ts,
-        #             end_ts=end_ts,
-        #             title=title,
-        #             description=description
-        #         )
-        #         n_noise_events = random.randint(0, 20)
-        #         params = {
-        #             "year": year,
-        #             'month': month,
-        #             "day": day,
-        #             'hour': hour,
-        #             'duration_mins': duration,
-        #             'event_title': title,
-        #             'event_description': description,
-        #             'row_objects': [event],
-        #             'noise_row_objects': generate_noise_events(
-        #                 [event], n_noise_events
-        #             ),
-        #         }
-        # if task_value == 'ContactsNewContactDraft':
-        #     result = extract_contact_details(row['instruction'])
-        #     if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
-        #         print(f"Name: {result}")
-        #         params = {
-        #             "first": result['first_name'],
-        #             "last": result['last_name'],
-        #             "phone": result['phone'],
-        #             "phone_label": result['phone_label'],
-        #         }
-        #
-        # if task_value == 'SimpleCalendarAddOneEventInTwoWeeks':
-        #     hour, title, description, duration = extract_event_info(row['instruction'])
-        #     if hour is not None and title is not None and description is not None and duration is not None:
-        #         print(f"hour: {hour}, title: {title}")
-        #
-        #         start_ts = _create_unix_ts(day= device_constants.DT.day + 14,hour=hour)
-        #         end_ts = start_ts + duration * 60
-        #         event = sqlite_schema_utils.CalendarEvent(
-        #             start_ts=start_ts,
-        #             end_ts=end_ts,
-        #             title=title,
-        #             description=description
-        #         )
-        #         n_noise_events = random.randint(0, 20)
-        #         params = {
-        #             "year": device_constants.DT.year,
-        #             'month': device_constants.DT.month,
-        #             "day": event.start_datetime.day,
-        #             'hour': hour,
-        #             'duration_mins': duration,
-        #             'event_title': title,
-        #             'event_description': description,
-        #             'row_objects': [event],
-        #             'noise_row_objects': generate_noise_events(
-        #                 [event], n_noise_events
-        #             ),
-        #         }
-        #
-        # if task_value == 'SimpleCalendarAddOneEventTomorrow':
-        #     hour, title, description, duration = extract_event_tuple(row['instruction'])
-        #     if hour is not None and title is not None and description is not None and duration is not None:
-        #         print(f"hour: {hour}, title: {title}, description: {description}")
-        #
-        #         start_ts = _create_unix_ts(day= device_constants.DT.day + 1,hour=hour)
-        #         end_ts = start_ts + duration * 60
-        #         event = sqlite_schema_utils.CalendarEvent(
-        #             start_ts=start_ts,
-        #             end_ts=end_ts,
-        #             title=title,
-        #             description=description
-        #         )
-        #         n_noise_events = random.randint(0, 20)
-        #         params = {
-        #             "year": device_constants.DT.year,
-        #             'month': device_constants.DT.month,
-        #             "day": event.start_datetime.day,
-        #             'hour': hour,
-        #             'duration_mins': duration,
-        #             'event_title': title,
-        #             'event_description': description,
-        #             'row_objects': [event],
-        #             'noise_row_objects': generate_noise_events(
-        #                 [event], n_noise_events
-        #             ),
-        #         }
-        #
-        # if task_value == 'SimpleCalendarAddOneEventRelativeDay':
-        #     week, hour, title, description, duration = extract_event_details(row['instruction'])
-        #     if hour is not None and title is not None and description is not None and duration is not None and week is not None:
-        #         print(f"hour: {hour}, title: {title}, week: {week}")
-        #
-        #         date_num = weekday_to_number(week)
-        #         start_ts = _create_unix_ts(day= device_constants.DT.day + date_num,hour=hour)
-        #         end_ts = start_ts + duration * 60
-        #         event = sqlite_schema_utils.CalendarEvent(
-        #             start_ts=start_ts,
-        #             end_ts=end_ts,
-        #             title=title,
-        #             description=description
-        #         )
-        #         n_noise_events = random.randint(0, 20)
-        #         params = {
-        #             "year": device_constants.DT.year,
-        #             'month': device_constants.DT.month,
-        #             "day": event.start_datetime.day,
-        #             'hour': hour,
-        #             'duration_mins': duration,
-        #             'event_title': title,
-        #             'event_description': description,
-        #             'row_objects': [event],
-        #             'noise_row_objects': generate_noise_events(
-        #                 [event], n_noise_events
-        #             ),
-        #         }
-        #
-        # if task_value == 'SimpleCalendarAddRepeatingEvent':
-        #     title, year, month, day, hour, recurrence, duration, description = extract_repeat_event_info(row['instruction'])
-        #     if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None and recurrence is not None:
-        #         print(f"year: {year}, month: {month}")
-        #
-        #         start_ts = _create_unix_ts(day=day, hour=hour)
-        #         end_ts = start_ts + duration * 60
-        #         template = sqlite_schema_utils.CalendarEvent(
-        #             start_ts=start_ts,
-        #             end_ts=end_ts,
-        #             title=title,
-        #             description=description
-        #         )
-        #         if recurrence == "weekly":
-        #             repeat_rule = calendar_utils.generate_simple_calendar_weekly_repeat_rule(
-        #                 template.start_datetime.isoweekday()
-        #             )
-        #         else:
-        #             repeat_rule = 0
-        #
-        #         event = dataclasses.replace(
-        #             template,
-        #             repeat_interval=_REPEAT_INTERVALS[recurrence],
-        #             repeat_rule=repeat_rule,
-        #         )
-        #
-        #         n_noise_events = random.randint(0, 20)
-        #         params = {
-        #             "year": year,
-        #             'month': month,
-        #             "day": day,
-        #             'hour': hour,
-        #             'duration_mins': duration,
-        #             'event_title': title,
-        #             'event_description': description,
-        #             'row_objects': [event],
-        #             'noise_row_objects': generate_noise_events(
-        #                 [event], n_noise_events
-        #             ),
-        #             'repeat_rule': recurrence
-        #         }
-        #
-        # if task_value == 'SimpleCalendarEventOnDateAtTime':
-        #     date, time = extract_from_template(
-        #         'What is on my schedule for {date} at {time} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.',
-        #         row['instruction'])
-        #     if date is not None and time is not None:
-        #         print(f"date: {date}, time: {time}")
-        #         params = {
-        #             'date': date,
-        #             'time': time,
-        #             'duration': '30 m',
-        #             'title': 'Team Meeting'
-        #         }
-        #
-        # if task_value == 'SimpleCalendarAnyEventsOnDate':
-        #     date = extract_from_template(
-        #         "Do I have any events {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     if date is not None:
-        #         print(f"date: {date}")
-        #         params = {
-        #             'date': date,
-        #             'title': '1-on-1 with Manager',
-        #             'time': '11:00am',
-        #         }
-        #
-        # if task_value == 'SimpleCalendarEventsInNextWeek':
-        #     extract_from_template(
-        #         "What events do I have in the next week in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     params = {
-        #         'date': 'October 16 2023',
-        #         'duration': '30 m',
-        #         'title': 'Sports game',
-        #         'person': 'Amanda',
-        #         'time': '11:00am',
-        #     }
-        #
-        # if task_value == 'SimpleCalendarEventsInTimeRange':
-        #     start_time, date = extract_from_template(
-        #         "Do I have any events between {start_time} and 8pm {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     if date is not None and start_time is not None:
-        #         print(f"start_time: {start_time}, date: {date}")
-        #         params = {
-        #             'start_time': start_time,
-        #             'date': date,
-        #             'duration': '30 m',
-        #             'title': 'Sports game',
-        #         }
-        #
-        # if task_value == 'SimpleCalendarEventsOnDate':
-        #     date = extract_from_template(
-        #         "What events do I have {date} in Simple Calendar Pro? Answer with the titles only. If there are multiple titles, format your answer as a comma separated list.",
-        #         row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date}")
-        #         params = {
-        #             'date': date,
-        #             'duration': '30 m',
-        #             'title': 'Sports game',
-        #             'time': '11:00am',
-        #         }
-        #
-        # if task_value == 'SimpleCalendarFirstEventAfterStartTime':
-        #     time, date = extract_from_template(
-        #         "What is my first event after {time} {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
-        #         row['instruction'])
-        #     if date is not None and time is not None:
-        #         print(f"date: {date},time :{time}")
-        #         params = {
-        #             'date': date,
-        #             'time': time,
-        #             'duration': '30 m',
-        #             'title': 'Sports game',
-        #         }
-        #
-        # if task_value == 'SimpleCalendarLocationOfEvent':
-        #     title = extract_from_template(
-        #         "What is the location of my {title} event in Simple Calendar Pro? Answer with the location only.",
-        #         row['instruction'])
-        #     title = list(title)[0]
-        #     if title is not None:
-        #         print(f"title: {title},")
-        #         params = {
-        #             'title': title,
-        #             'location': 'Conference Room A',
-        #             'date': 'October 16 2023',
-        #             'time': '1:30pm'
-        #         }
-        #
-        # if task_value == 'SimpleCalendarNextEvent':
-        #     print(f"SimpleCalendarNextEvent,")
-        #     params = {
-        #         'time': '7:15pm',
-        #         'duration': '30 m',
-        #         'title': 'Sports game',
-        #     }
-        #
-        # if task_value == 'SimpleCalendarNextMeetingWithPerson':
-        #     person = extract_from_template(
-        #         "When is my next meeting with {person} in Simple Calendar Pro? Express your answer in the format <month name> <day> <year> <hour in 24-hour format>:<minutes>.",
-        #         row['instruction'])
-        #     person = list(person)[0]
-        #     if person is not None:
-        #         print(f"person: {person},")
-        #         params = {
-        #             'person': person,
-        #             'time': '7:15pm',
-        #             'date': 'October 16 2023',
-        #         }
-        # if task_value == 'ExpenseDeleteMultiple' or task_value == 'ExpenseDeleteMultiple2' or task_value == 'ExpenseDeleteSingle':
-        #     names = extract_expense_delete_details(row['instruction'])
-        #     if len(names) > 0:
-        #         target_rows = []
-        #         for name in names:
-        #             if name is not None:
-        #                 category_id = random.choice(
-        #                     list(sqlite_schema_utils.Expense.category_id_to_name.keys())
-        #                 )
-        #                 amount = random.randint(
-        #                     1000, 50000
-        #                 )  # Amount in cents (e.g., $10.00 - $500.00)
-        #                 note = random.choice(_NOTES)
-        #                 expense_unix_time_s = _get_random_timestamp()
-        #                 expense_unix_time_ms = expense_unix_time_s * 1000
-        #                 target_rows.append(sqlite_schema_utils.Expense(
-        #                     name,
-        #                     amount,
-        #                     category_id,
-        #                     note,
-        #                     expense_unix_time_ms,
-        #                     expense_unix_time_ms,
-        #                 ))
-        #                 if task_value == 'ExpenseDeleteMultiple2':
-        #                   noise_rows = sqlite_schema_utils.get_random_items(
-        #                       20,
-        #                       _generate_expense,
-        #                       replacement=False,
-        #                       filter_fn=lambda r: all(r.name != t.name for t in target_rows),
-        #                   )
-        #                 elif task_value == 'ExpenseDeleteMultiple':
-        #                   noise_rows: list[sqlite_schema_utils.Expense] = []
-        #         if task_value == 'ExpenseDeleteSingle' and len(target_rows) > 0:
-        #           params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #           }
-        #         elif len(target_rows) > 0:
-        #           params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #           }
+    # if task_value == 'MarkorCreateNote':
+    #     file_name,text = extract_from_template(
+    #         "Create a new note in Markor named {file_name} with the following text: {text}",
+    #         row['instruction'])
+    #     if file_name is not None and text is not None:
+    #         print(f"text: {text},file_name:{file_name}")
+    #         params = {
+    #             'file_name': file_name,
+    #             'text': text,
+    #         }
+    #
+    # if task_value == 'MarkorCreateNoteAndSms':
+    #     file_name,text,number = extract_from_template(
+    #         "Create a new note in Markor named {file_name} with the following text:{text}. Share the entire content of the note with the phone number {number} via SMS using Simple SMS Messenger",
+    #         row['instruction'])
+    #     if file_name is not None and text is not None and number is not None:
+    #         print(f"text: {text},file_name:{file_name},number:{number}")
+    #         params = {
+    #             'file_name': file_name,
+    #             'text': text,
+    #             'number': number
+    #         }
+    #
+    # if task_value == 'MarkorCreateNoteFromClipboard':
+    #     file_name= extract_from_template(
+    #           "Create a note in Markor named {file_name}. Perform a paste operation in the note and save the note.",
+    #         row['instruction'])
+    #     file_name = list(file_name)[0]
+    #     if file_name is not None :
+    #         print(f"file_name:{file_name}")
+    #         params = {
+    #             'file_name': file_name,
+    #             'file_content':user_data_generation.generate_random_string(10)
+    #         }
+    #
+    # if task_value == 'SimpleCalendarAddOneEvent':
+    #     year, month, day, hour, title, description, duration = extract_calendar_event_info(row['instruction'])
+    #     if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None:
+    #         print(f"year: {year}, month: {month}")
+    #
+    #         start_ts = _create_unix_ts(day=day,hour=hour)
+    #         end_ts = start_ts + duration * 60
+    #         event = sqlite_schema_utils.CalendarEvent(
+    #             start_ts=start_ts,
+    #             end_ts=end_ts,
+    #             title=title,
+    #             description=description
+    #         )
+    #         n_noise_events = random.randint(0, 20)
+    #         params = {
+    #             "year": year,
+    #             'month': month,
+    #             "day": day,
+    #             'hour': hour,
+    #             'duration_mins': duration,
+    #             'event_title': title,
+    #             'event_description': description,
+    #             'row_objects': [event],
+    #             'noise_row_objects': generate_noise_events(
+    #                 [event], n_noise_events
+    #             ),
+    #         }
+    # if task_value == 'ContactsNewContactDraft':
+    #     result = extract_contact_details(row['instruction'])
+    #     if result['first_name'] is not None and result['last_name'] is not None and result['phone'] is not None and result['phone_label'] is not None:
+    #         print(f"Name: {result}")
+    #         params = {
+    #             "first": result['first_name'],
+    #             "last": result['last_name'],
+    #             "phone": result['phone'],
+    #             "phone_label": result['phone_label'],
+    #         }
+    #
+    # if task_value == 'SimpleCalendarAddOneEventInTwoWeeks':
+    #     hour, title, description, duration = extract_event_info(row['instruction'])
+    #     if hour is not None and title is not None and description is not None and duration is not None:
+    #         print(f"hour: {hour}, title: {title}")
+    #
+    #         start_ts = _create_unix_ts(day= device_constants.DT.day + 14,hour=hour)
+    #         end_ts = start_ts + duration * 60
+    #         event = sqlite_schema_utils.CalendarEvent(
+    #             start_ts=start_ts,
+    #             end_ts=end_ts,
+    #             title=title,
+    #             description=description
+    #         )
+    #         n_noise_events = random.randint(0, 20)
+    #         params = {
+    #             "year": device_constants.DT.year,
+    #             'month': device_constants.DT.month,
+    #             "day": event.start_datetime.day,
+    #             'hour': hour,
+    #             'duration_mins': duration,
+    #             'event_title': title,
+    #             'event_description': description,
+    #             'row_objects': [event],
+    #             'noise_row_objects': generate_noise_events(
+    #                 [event], n_noise_events
+    #             ),
+    #         }
+    #
+    # if task_value == 'SimpleCalendarAddOneEventTomorrow':
+    #     hour, title, description, duration = extract_event_tuple(row['instruction'])
+    #     if hour is not None and title is not None and description is not None and duration is not None:
+    #         print(f"hour: {hour}, title: {title}, description: {description}")
+    #
+    #         start_ts = _create_unix_ts(day= device_constants.DT.day + 1,hour=hour)
+    #         end_ts = start_ts + duration * 60
+    #         event = sqlite_schema_utils.CalendarEvent(
+    #             start_ts=start_ts,
+    #             end_ts=end_ts,
+    #             title=title,
+    #             description=description
+    #         )
+    #         n_noise_events = random.randint(0, 20)
+    #         params = {
+    #             "year": device_constants.DT.year,
+    #             'month': device_constants.DT.month,
+    #             "day": event.start_datetime.day,
+    #             'hour': hour,
+    #             'duration_mins': duration,
+    #             'event_title': title,
+    #             'event_description': description,
+    #             'row_objects': [event],
+    #             'noise_row_objects': generate_noise_events(
+    #                 [event], n_noise_events
+    #             ),
+    #         }
+    #
+    # if task_value == 'SimpleCalendarAddOneEventRelativeDay':
+    #     week, hour, title, description, duration = extract_event_details(row['instruction'])
+    #     if hour is not None and title is not None and description is not None and duration is not None and week is not None:
+    #         print(f"hour: {hour}, title: {title}, week: {week}")
+    #
+    #         date_num = weekday_to_number(week)
+    #         start_ts = _create_unix_ts(day= device_constants.DT.day + date_num,hour=hour)
+    #         end_ts = start_ts + duration * 60
+    #         event = sqlite_schema_utils.CalendarEvent(
+    #             start_ts=start_ts,
+    #             end_ts=end_ts,
+    #             title=title,
+    #             description=description
+    #         )
+    #         n_noise_events = random.randint(0, 20)
+    #         params = {
+    #             "year": device_constants.DT.year,
+    #             'month': device_constants.DT.month,
+    #             "day": event.start_datetime.day,
+    #             'hour': hour,
+    #             'duration_mins': duration,
+    #             'event_title': title,
+    #             'event_description': description,
+    #             'row_objects': [event],
+    #             'noise_row_objects': generate_noise_events(
+    #                 [event], n_noise_events
+    #             ),
+    #         }
+    #
+    # if task_value == 'SimpleCalendarAddRepeatingEvent':
+    #     title, year, month, day, hour, recurrence, duration, description = extract_repeat_event_info(row['instruction'])
+    #     if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None and recurrence is not None:
+    #         print(f"year: {year}, month: {month}")
+    #
+    #         start_ts = _create_unix_ts(day=day, hour=hour)
+    #         end_ts = start_ts + duration * 60
+    #         template = sqlite_schema_utils.CalendarEvent(
+    #             start_ts=start_ts,
+    #             end_ts=end_ts,
+    #             title=title,
+    #             description=description
+    #         )
+    #         if recurrence == "weekly":
+    #             repeat_rule = calendar_utils.generate_simple_calendar_weekly_repeat_rule(
+    #                 template.start_datetime.isoweekday()
+    #             )
+    #         else:
+    #             repeat_rule = 0
+    #
+    #         event = dataclasses.replace(
+    #             template,
+    #             repeat_interval=_REPEAT_INTERVALS[recurrence],
+    #             repeat_rule=repeat_rule,
+    #         )
+    #
+    #         n_noise_events = random.randint(0, 20)
+    #         params = {
+    #             "year": year,
+    #             'month': month,
+    #             "day": day,
+    #             'hour': hour,
+    #             'duration_mins': duration,
+    #             'event_title': title,
+    #             'event_description': description,
+    #             'row_objects': [event],
+    #             'noise_row_objects': generate_noise_events(
+    #                 [event], n_noise_events
+    #             ),
+    #             'repeat_rule': recurrence
+    #         }
+    #
+    # if task_value == 'SimpleCalendarEventOnDateAtTime':
+    #     date, time = extract_from_template(
+    #         'What is on my schedule for {date} at {time} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.',
+    #         row['instruction'])
+    #     if date is not None and time is not None:
+    #         print(f"date: {date}, time: {time}")
+    #         params = {
+    #             'date': date,
+    #             'time': time,
+    #             'duration': '30 m',
+    #             'title': 'Team Meeting'
+    #         }
+    #
+    # if task_value == 'SimpleCalendarAnyEventsOnDate':
+    #     date = extract_from_template(
+    #         "Do I have any events {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+    #         row['instruction'])
+    #     if date is not None:
+    #         print(f"date: {date}")
+    #         params = {
+    #             'date': date,
+    #             'title': '1-on-1 with Manager',
+    #             'time': '11:00am',
+    #         }
+    #
+    # if task_value == 'SimpleCalendarEventsInNextWeek':
+    #     extract_from_template(
+    #         "What events do I have in the next week in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+    #         row['instruction'])
+    #     params = {
+    #         'date': 'October 16 2023',
+    #         'duration': '30 m',
+    #         'title': 'Sports game',
+    #         'person': 'Amanda',
+    #         'time': '11:00am',
+    #     }
+    #
+    # if task_value == 'SimpleCalendarEventsInTimeRange':
+    #     start_time, date = extract_from_template(
+    #         "Do I have any events between {start_time} and 8pm {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+    #         row['instruction'])
+    #     if date is not None and start_time is not None:
+    #         print(f"start_time: {start_time}, date: {date}")
+    #         params = {
+    #             'start_time': start_time,
+    #             'date': date,
+    #             'duration': '30 m',
+    #             'title': 'Sports game',
+    #         }
+    #
+    # if task_value == 'SimpleCalendarEventsOnDate':
+    #     date = extract_from_template(
+    #         "What events do I have {date} in Simple Calendar Pro? Answer with the titles only. If there are multiple titles, format your answer as a comma separated list.",
+    #         row['instruction'])
+    #     date = list(date)[0]
+    #     if date is not None:
+    #         print(f"date: {date}")
+    #         params = {
+    #             'date': date,
+    #             'duration': '30 m',
+    #             'title': 'Sports game',
+    #             'time': '11:00am',
+    #         }
+    #
+    # if task_value == 'SimpleCalendarFirstEventAfterStartTime':
+    #     time, date = extract_from_template(
+    #         "What is my first event after {time} {date} in Simple Calendar Pro? Answer with the titles only. If there are multiples titles, format your answer in a comma separated list.",
+    #         row['instruction'])
+    #     if date is not None and time is not None:
+    #         print(f"date: {date},time :{time}")
+    #         params = {
+    #             'date': date,
+    #             'time': time,
+    #             'duration': '30 m',
+    #             'title': 'Sports game',
+    #         }
+    #
+    # if task_value == 'SimpleCalendarLocationOfEvent':
+    #     title = extract_from_template(
+    #         "What is the location of my {title} event in Simple Calendar Pro? Answer with the location only.",
+    #         row['instruction'])
+    #     title = list(title)[0]
+    #     if title is not None:
+    #         print(f"title: {title},")
+    #         params = {
+    #             'title': title,
+    #             'location': 'Conference Room A',
+    #             'date': 'October 16 2023',
+    #             'time': '1:30pm'
+    #         }
+    #
+    # if task_value == 'SimpleCalendarNextEvent':
+    #     print(f"SimpleCalendarNextEvent,")
+    #     params = {
+    #         'time': '7:15pm',
+    #         'duration': '30 m',
+    #         'title': 'Sports game',
+    #     }
+    #
+    # if task_value == 'SimpleCalendarNextMeetingWithPerson':
+    #     person = extract_from_template(
+    #         "When is my next meeting with {person} in Simple Calendar Pro? Express your answer in the format <month name> <day> <year> <hour in 24-hour format>:<minutes>.",
+    #         row['instruction'])
+    #     person = list(person)[0]
+    #     if person is not None:
+    #         print(f"person: {person},")
+    #         params = {
+    #             'person': person,
+    #             'time': '7:15pm',
+    #             'date': 'October 16 2023',
+    #         }
+    # if task_value == 'ExpenseDeleteMultiple' or task_value == 'ExpenseDeleteMultiple2' or task_value == 'ExpenseDeleteSingle':
+    #     names = extract_expense_delete_details(row['instruction'])
+    #     if len(names) > 0:
+    #         target_rows = []
+    #         for name in names:
+    #             if name is not None:
+    #                 category_id = random.choice(
+    #                     list(sqlite_schema_utils.Expense.category_id_to_name.keys())
+    #                 )
+    #                 amount = random.randint(
+    #                     1000, 50000
+    #                 )  # Amount in cents (e.g., $10.00 - $500.00)
+    #                 note = random.choice(_NOTES)
+    #                 expense_unix_time_s = _get_random_timestamp()
+    #                 expense_unix_time_ms = expense_unix_time_s * 1000
+    #                 target_rows.append(sqlite_schema_utils.Expense(
+    #                     name,
+    #                     amount,
+    #                     category_id,
+    #                     note,
+    #                     expense_unix_time_ms,
+    #                     expense_unix_time_ms,
+    #                 ))
+    #                 if task_value == 'ExpenseDeleteMultiple2':
+    #                   noise_rows = sqlite_schema_utils.get_random_items(
+    #                       20,
+    #                       _generate_expense,
+    #                       replacement=False,
+    #                       filter_fn=lambda r: all(r.name != t.name for t in target_rows),
+    #                   )
+    #                 elif task_value == 'ExpenseDeleteMultiple':
+    #                   noise_rows: list[sqlite_schema_utils.Expense] = []
+    #         if task_value == 'ExpenseDeleteSingle' and len(target_rows) > 0:
+    #           params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #           }
+    #         elif len(target_rows) > 0:
+    #           params = {
+    #             sqlite_validators.ROW_OBJECTS: target_rows,
+    #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
+    #           }
 
-        # if task_value == 'SimpleSmsReply':
-        #     number, message = extract_sms_reply(row['instruction'])
-        #     if message is not None and number is not None:
-        #         print(f"message: {message}, Number: {number}")
-        #         params = {
-        #             'message': message,
-        #             'number': number
-        #         }
+    # if task_value == 'SimpleSmsReply':
+    #     number, message = extract_sms_reply(row['instruction'])
+    #     if message is not None and number is not None:
+    #         print(f"message: {message}, Number: {number}")
+    #         params = {
+    #             'message': message,
+    #             'number': number
+    #         }
 
-        # if task_value == 'SimpleSmsSend':
-        #     number, message = extract_sms_info(row['instruction'])
-        #     if message is not None and number is not None:
-        #         print(f"message: {message}, Number: {number}")
-        #         params = {
-        #             'message': message,
-        #             'number': number
-        #         }
-        
-        # if task_value == 'SimpleSmsSendClipboardContent':
-        #     number = extract_sms_number(row['instruction'])
-        #     message = random.choice(user_data_generation.RANDOM_SENTENCES)
-        #     if number is not None:
-        #         print(f"Number: {number}")
-        #         params = {
-        #             'message': message,
-        #             'number': number
-        #         }
+    # if task_value == 'SimpleSmsSend':
+    #     number, message = extract_sms_info(row['instruction'])
+    #     if message is not None and number is not None:
+    #         print(f"message: {message}, Number: {number}")
+    #         params = {
+    #             'message': message,
+    #             'number': number
+    #         }
 
-        # if task_value == 'SimpleSmsReplyMostRecent':
-        #     message = extract_sms_message(row['instruction'])
-        #     number = user_data_generation.generate_random_number()
-        #     if message is not None:
-        #         print(f"message: {message}")
-        #         params = {
-        #             'message': message,
-        #             'number': number
-        #         }
+    # if task_value == 'SimpleSmsSendClipboardContent':
+    #     number = extract_sms_number(row['instruction'])
+    #     message = random.choice(user_data_generation.RANDOM_SENTENCES)
+    #     if number is not None:
+    #         print(f"Number: {number}")
+    #         params = {
+    #             'message': message,
+    #             'number': number
+    #         }
 
-        # if task_value == 'FilesDeleteFile':
-        #     file_name, subfolder = extract_file_delete(row['instruction'])
-        #     if file_name is not None and subfolder is not None:
-        #         print(f"file_name: {file_name}, subfolder: {subfolder}")
-        #         noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[subfolder]
-        #         params = {
-        #             "file_name": file_name,
-        #             "subfolder": subfolder,
-        #             "noise_candidates": noise_candidates,
-        #         }
+    # if task_value == 'SimpleSmsReplyMostRecent':
+    #     message = extract_sms_message(row['instruction'])
+    #     number = user_data_generation.generate_random_number()
+    #     if message is not None:
+    #         print(f"message: {message}")
+    #         params = {
+    #             'message': message,
+    #             'number': number
+    #         }
 
-        # if task_value == 'FilesMoveFile':
-        #     file_name, source_folder, destination_folder = extract_file_move(row['instruction'])
-        #     if file_name is not None and source_folder is not None and destination_folder is not None:
-        #         print(f"file_name: {file_name}, source_folder: {source_folder}, destination_folder: {destination_folder}")
-        #         noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[source_folder]
-        #         params = {
-        #             "file_name": file_name,
-        #             "source_folder": source_folder,
-        #             "destination_folder": destination_folder,
-        #             "noise_candidates": noise_candidates,
-        #         }
-        
-        # if task_value == 'RetroCreatePlaylist':
-        #     playlist_name, names = extract_retro_playlist_create(row['instruction'])
-        #     if playlist_name is not None and names is not None:
-        #         print(f'playlist_name: {playlist_name}, names: {names}')
-        #         files = [f'{name}.mp3' for name in names]
-        #         params = {
-        #             'playlist_name': playlist_name,
-        #             'files': files,
-        #             'noise_files': [],
-        #         }
+    # if task_value == 'FilesDeleteFile':
+    #     file_name, subfolder = extract_file_delete(row['instruction'])
+    #     if file_name is not None and subfolder is not None:
+    #         print(f"file_name: {file_name}, subfolder: {subfolder}")
+    #         noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[subfolder]
+    #         params = {
+    #             "file_name": file_name,
+    #             "subfolder": subfolder,
+    #             "noise_candidates": noise_candidates,
+    #         }
 
-        # if task_value == 'RetroPlayingQueue':
-        #     names = extract_retro_play(row['instruction'].replace(' to my playing queue in Retro music.', ''))
-        #     if names is not None:
-        #         print(f'names: {names}')
-        #         playlist_name = _generate_playlist_name()
-        #         files = [f'{name}.mp3' for name in names]
-        #         params = {
-        #             'playlist_name': playlist_name,
-        #             'files': files,
-        #             'noise_files': [],
-        #         }
-        
-        # if task_value == 'RetroPlaylistDuration':
-        #     playlist_name, = extract_from_template(
-        #         'Create a playlist in Retro Music titled "{playlist_name}" with a duration between 45 and 50 minutes using the provided songs.',
-        #         row['instruction'],
-        #     )
-        #     if playlist_name is not None:
-        #         print(f'playlist_name: {playlist_name}')
-        #         files = ['Beyond the Horizon.mp3', 'Bright Lights.mp3'] #固定
-        #         random_files = [f'{name}.mp3' for name in random.sample(_SONGS, 15)]
-        #         noise_files = []
-        #         for name in random_files:
-        #             if name not in files:
-        #                 noise_files.append(name)
-        #         print(f'noise files: {noise_files}')
-        #         params = {
-        #             'playlist_name': playlist_name,
-        #             'files': files,
-        #             'noise_files': noise_files,
-        #         }
-        #
-        # if task_value == 'RetroSavePlaylist':
-        #     playlist_name, names = extract_retro_playlist_create(row['instruction'].replace('. Then export the playlist to the Downloads directory on the device.', ''))
-        #     if playlist_name is not None and names is not None:
-        #         print(f'playlist_name: {playlist_name}, names: {names}')
-        #         files = [f'{name}.mp3' for name in names]
-        #         params = {
-        #             'playlist_name': playlist_name,
-        #             'files': files,
-        #             'noise_files': [],
-        #         }
+    # if task_value == 'FilesMoveFile':
+    #     file_name, source_folder, destination_folder = extract_file_move(row['instruction'])
+    #     if file_name is not None and source_folder is not None and destination_folder is not None:
+    #         print(f"file_name: {file_name}, source_folder: {source_folder}, destination_folder: {destination_folder}")
+    #         noise_candidates = user_data_generation.EMULATOR_DIRECTORIES[source_folder]
+    #         params = {
+    #             "file_name": file_name,
+    #             "source_folder": source_folder,
+    #             "destination_folder": destination_folder,
+    #             "noise_candidates": noise_candidates,
+    #         }
 
-        # if task_value == 'VlcCreatePlaylist':
-        #     playlist_name, files = extract_vlc_playlist_create(row['instruction'])
-        #     if playlist_name is not None and files:
-        #         print(f"Playlist Name: {playlist_name}, Files: {files}")
-        #         params = {
-        #             'playlist_name': playlist_name,
-        #             'files': files,
-        #             'noise_files': [generate_file_name() for _ in range(len(files))]
-        #         }
+    # if task_value == 'RetroCreatePlaylist':
+    #     playlist_name, names = extract_retro_playlist_create(row['instruction'])
+    #     if playlist_name is not None and names is not None:
+    #         print(f'playlist_name: {playlist_name}, names: {names}')
+    #         files = [f'{name}.mp3' for name in names]
+    #         params = {
+    #             'playlist_name': playlist_name,
+    #             'files': files,
+    #             'noise_files': [],
+    #         }
 
-        # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
-        #     type,results = extract_expense_add_multiple(row['instruction'])
-        #     if type is not None and len(results) > 0:
-        #         target_rows: list[sqlite_schema_utils.Expense] = []
-        #         for result in results:
-        #             if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
-        #                 expense_unix_time_s = _get_random_timestamp()
-        #                 expense_unix_time_ms = expense_unix_time_s * 1000
-        #                 category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
-        #                 target_rows.append(sqlite_schema_utils.Expense(
-        #                     result['name'],
-        #                     int(float(result['amount'])*100),
-        #                     category_id,
-        #                     result['note'],
-        #                     expense_unix_time_ms,
-        #                     expense_unix_time_ms,
-        #                 ))
-        #         noise_rows = sqlite_schema_utils.get_random_items(
-        #             10,
-        #             _generate_expense,
-        #             replacement=False,
-        #             filter_fn=lambda r: all(r.name != t.name for t in target_rows),
-        #         )
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #             'text_representation_type': type,
-        #         }
+    # if task_value == 'RetroPlayingQueue':
+    #     names = extract_retro_play(row['instruction'].replace(' to my playing queue in Retro music.', ''))
+    #     if names is not None:
+    #         print(f'names: {names}')
+    #         playlist_name = _generate_playlist_name()
+    #         files = [f'{name}.mp3' for name in names]
+    #         params = {
+    #             'playlist_name': playlist_name,
+    #             'files': files,
+    #             'noise_files': [],
+    #         }
 
-        # if task_value == 'MarkorDeleteNote':
-        #     date = extract_from_template(
-        #         "Delete the note in Markor named {file_name}.",
-        #         row['instruction'])
-        #     date = list(date)[0]
-        #     if date is not None:
-        #         print(f"date: {date}")
-        #         params = {
-        #             'file_name': date,
-        #             "noise_candidates": _NOTE_TITLES
-        #         }
+    # if task_value == 'RetroPlaylistDuration':
+    #     playlist_name, = extract_from_template(
+    #         'Create a playlist in Retro Music titled "{playlist_name}" with a duration between 45 and 50 minutes using the provided songs.',
+    #         row['instruction'],
+    #     )
+    #     if playlist_name is not None:
+    #         print(f'playlist_name: {playlist_name}')
+    #         files = ['Beyond the Horizon.mp3', 'Bright Lights.mp3'] #固定
+    #         random_files = [f'{name}.mp3' for name in random.sample(_SONGS, 15)]
+    #         noise_files = []
+    #         for name in random_files:
+    #             if name not in files:
+    #                 noise_files.append(name)
+    #         print(f'noise files: {noise_files}')
+    #         params = {
+    #             'playlist_name': playlist_name,
+    #             'files': files,
+    #             'noise_files': noise_files,
+    #         }
+    #
+    # if task_value == 'RetroSavePlaylist':
+    #     playlist_name, names = extract_retro_playlist_create(row['instruction'].replace('. Then export the playlist to the Downloads directory on the device.', ''))
+    #     if playlist_name is not None and names is not None:
+    #         print(f'playlist_name: {playlist_name}, names: {names}')
+    #         files = [f'{name}.mp3' for name in names]
+    #         params = {
+    #             'playlist_name': playlist_name,
+    #             'files': files,
+    #             'noise_files': [],
+    #         }
 
-        # if task_value == 'MarkorEditNote':
-        #   edit_type = None
-        #   param1 = None
-        #   param2 = None
-        #   if "the top" in row['instruction']:
-        #     edit_type = "header"
-        #     param1, param2 = extract_from_template(
-        #         "Edit {file_name} in Markor. Add to the top of the note {header}",
-        #         row['instruction']
-        #     )
-        #   elif "the bottom" in row['instruction']:
-        #     edit_type = "footer"
-        #     param1, param2 = extract_from_template(
-        #         "Edit {file_name} in Markor. Add to the bottom of the note {footer}",
-        #         row['instruction']
-        #     )
-        #   elif "replace the text" in row['instruction'].lower():
-        #     edit_type = "replace"
-        #     param1, param2 = extract_from_template(
-        #         "Edit {file_name} in Markor. Replace the text with {replace_text}.",
-        #         row['instruction']
-        #     )
-        #   print(f"edit_type: {edit_type}")
-        #   print(f"param1: {param1}, param2: {param2}")
-        #   if param1 is not None and param2 is not None:
-        #     params = {
-        #       'file_name': param1,
-        #       'edit_type': edit_type,
-        #     }
+    # if task_value == 'VlcCreatePlaylist':
+    #     playlist_name, files = extract_vlc_playlist_create(row['instruction'])
+    #     if playlist_name is not None and files:
+    #         print(f"Playlist Name: {playlist_name}, Files: {files}")
+    #         params = {
+    #             'playlist_name': playlist_name,
+    #             'files': files,
+    #             'noise_files': [generate_file_name() for _ in range(len(files))]
+    #         }
 
-        #     if edit_type == "header":
-        #       params["header"] = param2
-        #     elif edit_type == "footer":
-        #       params["footer"] = param2
-        #     elif edit_type == "replace":
-        #       params["replace_text"] = param2
+    # if task_value == 'MarkorDeleteNote':
+    #     date = extract_from_template(
+    #         "Delete the note in Markor named {file_name}.",
+    #         row['instruction'])
+    #     date = list(date)[0]
+    #     if date is not None:
+    #         print(f"date: {date}")
+    #         params = {
+    #             'file_name': date,
+    #             "noise_candidates": _NOTE_TITLES
+    #         }
+
+    # if task_value == 'MarkorEditNote':
+    #   edit_type = None
+    #   param1 = None
+    #   param2 = None
+    #   if "the top" in row['instruction']:
+    #     edit_type = "header"
+    #     param1, param2 = extract_from_template(
+    #         "Edit {file_name} in Markor. Add to the top of the note {header}",
+    #         row['instruction']
+    #     )
+    #   elif "the bottom" in row['instruction']:
+    #     edit_type = "footer"
+    #     param1, param2 = extract_from_template(
+    #         "Edit {file_name} in Markor. Add to the bottom of the note {footer}",
+    #         row['instruction']
+    #     )
+    #   elif "replace the text" in row['instruction'].lower():
+    #     edit_type = "replace"
+    #     param1, param2 = extract_from_template(
+    #         "Edit {file_name} in Markor. Replace the text with {replace_text}.",
+    #         row['instruction']
+    #     )
+    #   print(f"edit_type: {edit_type}")
+    #   print(f"param1: {param1}, param2: {param2}")
+    #   if param1 is not None and param2 is not None:
+    #     params = {
+    #       'file_name': param1,
+    #       'edit_type': edit_type,
+    #     }
+
+    #     if edit_type == "header":
+    #       params["header"] = param2
+    #     elif edit_type == "footer":
+    #       params["footer"] = param2
+    #     elif edit_type == "replace":
+    #       params["replace_text"] = param2
 
     # if task_value == 'RecipeAddMultipleRecipes' or task_value == 'RecipeAddSingleRecipe':
     #     recipe_type, recipes = parse_recipes(row['instruction'])
@@ -1952,102 +1923,92 @@ if __name__ == '__main__':
     #             "text_representation_type": recipe_type,
     #         }
 
-        # if task_value == 'SimpleCalendarDeleteEvents':
-        #     year, month, day = extract_from_template(
-        #         (
-        #             "In Simple Calendar Pro, delete all the calendar events on"
-        #             " {year}-{month}-{day}"
-        #         ),
-        #         row['instruction']
-        #     )
-        #     if year is not None and month is not None and day is not None:
-        #         year = int(year)
-        #         month = int(month)
-        #         day = int(day)
-        #         events: list[sqlite_schema_utils.CalendarEvent] = [
-        #             events_generator.generate_event(
-        #                 datetime_utils.create_random_october_2023_unix_ts(
-        #                     start_day=day, end_day=day
-        #                 )
-        #             )
-        #             for _ in range(3)
-        #         ]
-        #         noise_events: list[sqlite_schema_utils.CalendarEvent] = generate_noise_events(
-        #             events,
-        #             5,
-        #             filter_fn=lambda candidate: candidate.start_datetime.day
-        #             not in (target.start_datetime.day for target in events),
-        #         )
-        #         params = {
-        #             'year': year,
-        #             'month': month,
-        #             'day': day,
-        #             sqlite_validators.ROW_OBJECTS: events,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
-        #         }
+    # if task_value == 'SimpleCalendarDeleteEvents':
+    #     year, month, day = extract_from_template(
+    #         (
+    #             "In Simple Calendar Pro, delete all the calendar events on"
+    #             " {year}-{month}-{day}"
+    #         ),
+    #         row['instruction']
+    #     )
+    #     if year is not None and month is not None and day is not None:
+    #         year = int(year)
+    #         month = int(month)
+    #         day = int(day)
+    #         events: list[sqlite_schema_utils.CalendarEvent] = [
+    #             events_generator.generate_event(
+    #                 datetime_utils.create_random_october_2023_unix_ts(
+    #                     start_day=day, end_day=day
+    #                 )
+    #             )
+    #             for _ in range(3)
+    #         ]
+    #         noise_events: list[sqlite_schema_utils.CalendarEvent] = generate_noise_events(
+    #             events,
+    #             5,
+    #             filter_fn=lambda candidate: candidate.start_datetime.day
+    #             not in (target.start_datetime.day for target in events),
+    #         )
+    #         params = {
+    #             'year': year,
+    #             'month': month,
+    #             'day': day,
+    #             sqlite_validators.ROW_OBJECTS: events,
+    #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+    #         }
 
-        # if task_value == 'SimpleCalendarDeleteEventsOnRelativeDay':
-        #     day_of_week = extract_from_template(
-        #         (
-        #             "In Simple Calendar Pro, delete all events scheduled for this"
-        #             " {day_of_week}."
-        #         ),
-        #         row['instruction']
-        #     )
-        #     day_of_week = list(day_of_week)[0]
-        #     if day_of_week is not None:
-        #         target_date = get_day_of_week(day_of_week.lower())
-        #         events: list[sqlite_schema_utils.CalendarEvent] = [
-        #             events_generator.generate_event(
-        #                 datetime_utils.create_random_october_2023_unix_ts(
-        #                     start_day=target_date['day'], end_day=target_date['day']
-        #                 )
-        #             )
-        #             for _ in range(2)
-        #         ]
-        #         noise_events: list[sqlite_schema_utils.CalendarEvent] = generate_noise_events(
-        #             events,
-        #             5,
-        #             filter_fn=lambda candidate: candidate.start_datetime.day
-        #             not in (target.start_datetime.day for target in events),
-        #         )
-        #         params = {
-        #             'year': target_date['year'],
-        #             'month': target_date['month'],
-        #             'day': target_date['day'],
-        #             'day_of_week': day_of_week,
-        #             sqlite_validators.ROW_OBJECTS: events,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
-        #         }
 
-        # if task_value == 'SimpleDrawProCreateDrawing':
-        #   file_name = extract_from_template(
-        #     "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in the Pictures folder within the sdk_gphone_x86_64 storage area.",
-        #     row['instruction']
-        #   )
-        #   file_name = list(file_name)[0]
-        #   if file_name is not None:
-        #     params = {
-        #       'file_name': file_name,
-        #       'text': '',
-        #     }
 
-        # if task_value == 'MarkorMoveNote':
-        #   options = extract_from_template(
-        #     (
-        #         "In Markor, move the note {file_name} from {source_folder} to"
-        #         " {destination_folder}."
-        #     ),
-        #     row['instruction']
-        #   )
-        #   if options is not None:
-        #     file_name, source_folder, destination_folder = options
-        #     params = {
-        #       'file_name': file_name,
-        #       'source_folder': source_folder,
-        #       'destination_folder': destination_folder,
-        #       'noise_candidates': _NOTE_TITLES,
-        #     }
+    # if task_value == 'SimpleCalendarDeleteEventsOnRelativeDay':
+    #     day_of_week = extract_from_template(
+    #         (
+    #             "In Simple Calendar Pro, delete all events scheduled for this"
+    #             " {day_of_week}."
+    #         ),
+    #         row['instruction']
+    #     )
+    #     day_of_week = list(day_of_week)[0]
+    #     if day_of_week is not None:
+    #         target_date = get_day_of_week(day_of_week.lower())
+    #         events: list[sqlite_schema_utils.CalendarEvent] = [
+    #             events_generator.generate_event(
+    #                 datetime_utils.create_random_october_2023_unix_ts(
+    #                     start_day=target_date['day'], end_day=target_date['day']
+    #                 )
+    #             )
+    #             for _ in range(2)
+    #         ]
+    #         noise_events: list[sqlite_schema_utils.CalendarEvent] = generate_noise_events(
+    #             events,
+    #             5,
+    #             filter_fn=lambda candidate: candidate.start_datetime.day
+    #             not in (target.start_datetime.day for target in events),
+    #         )
+    #         params = {
+    #             'year': target_date['year'],
+    #             'month': target_date['month'],
+    #             'day': target_date['day'],
+    #             'day_of_week': day_of_week,
+    #             sqlite_validators.ROW_OBJECTS: events,
+    #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+    #         }
+
+    # if task_value == 'MarkorMoveNote':
+    #   options = extract_from_template(
+    #     (
+    #         "In Markor, move the note {file_name} from {source_folder} to"
+    #         " {destination_folder}."
+    #     ),
+    #     row['instruction']
+    #   )
+    #   if options is not None:
+    #     file_name, source_folder, destination_folder = options
+    #     params = {
+    #       'file_name': file_name,
+    #       'source_folder': source_folder,
+    #       'destination_folder': destination_folder,
+    #       'noise_candidates': _NOTE_TITLES,
+    #     }
 
     # if task_value == 'RecipeDeleteMultipleRecipesWithNoise':
     #     titles = extract_from_template('Delete the following recipes from Broccoli app: {titles}.', row['instruction'])

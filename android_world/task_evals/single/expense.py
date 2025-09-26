@@ -259,7 +259,7 @@ class _ExpenseAddMultiple(_Expense, sqlite_validators.AddMultipleRows):
         self.params[sqlite_validators.ROW_OBJECTS],
         self.params[_TEXT_REPRESENTATION_TYPE],
     )
-    return f'Add the following expenses into the {_APP_NAME}:\n{text_repr}. (The category list can be scrolled left and right, and there is no need to enter the $ symbol in the amount input box)'
+    return f'Add the following expenses into the {_APP_NAME}:\n{text_repr}. (The category list can be scrolled right, and there is no need to enter the $ symbol in the amount input box)'
 
   def validate_addition_integrity(
       self,

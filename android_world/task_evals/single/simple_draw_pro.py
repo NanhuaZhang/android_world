@@ -28,15 +28,15 @@ class SimpleDrawProCreateDrawing(task_eval.TaskEval):
   """Task for checking that a new drawing has been created with a specific name."""
 
   app_names = ("simple draw pro",)
-  complexity = 1.8
+  complexity = 2.8
   schema = file_validators.CreateFile.schema
   # template = (
   #     "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in"
   #     " the Pictures folder within the sdk_gphone_x86_64 storage area."
   # )
   template = (
-      "Create a new drawing in Simple Draw Pro. Name it {file_name} (Do not enter the file extension). Save it in"
-      " the Pictures folder within the sdk_gphone_x86_64 storage area. (Select the file path after saving the file name)"
+      "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in"
+      " the Pictures folder within the sdk_gphone_x86_64 storage area."
   )
 
   def __init__(self, params: dict[str, Any]):

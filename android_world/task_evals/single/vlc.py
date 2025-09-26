@@ -211,13 +211,13 @@ class VlcCreateTwoPlaylists(task_eval.TaskEval):
         f' following files in VLC, in order: {", ".join(self.params["files2"])}'
     )
 
-    # return f'{goal1}. And then, {goal2}.'
-    
-    return (
-      f'{goal1}. And then, {goal2}. '
-      '(The two playlists have nothing to do with each other.'
-      ' Important: When creating a playlist, do not uncheck anyone after selecting it, regardless of whether it is correct or not!!!!!!!)'
-    )
+    return f'{goal1}. And then, {goal2}.'
+
+    # return (
+    #   f'{goal1}. And then, {goal2}. '
+    #   '(The two playlists have nothing to do with each other.'
+    #   ' Important: When creating a playlist, do not uncheck anyone after selecting it, regardless of whether it is correct or not!!!!!!!)'
+    # )
 
   def initialize_task(self, env: interface.AsyncEnv):
     super().initialize_task(env)

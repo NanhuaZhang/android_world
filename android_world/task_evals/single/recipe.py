@@ -135,7 +135,7 @@ class RecipeDeleteMultipleRecipesWithConstraint(_RecipeDeleteMultipleRecipes):
 
   complexity = 10
   n_rows = 3
-  n_rows_noise = 6
+  n_rows_noise = 1
 
   @property
   def goal(self) -> str:
@@ -185,9 +185,9 @@ class RecipeDeleteDuplicateRecipes(
 ):
   """Deduplicate recipes from Broccoli Recipe App."""
 
-  complexity = 1
+  complexity = 3
   n_rows = 1
-  n_rows_noise = 5
+  n_rows_noise = 1
 
   @property
   def goal(self) -> str:
@@ -429,13 +429,18 @@ class RecipeAddMultipleRecipesFromMarkor(_RecipeAddMultipleRecipes):
   """Task to add multiple recipes from a text file to Broccoli Recipe App."""
 
   complexity = 6
-  n_rows = 3
-  n_rows_noise = 10
+  n_rows = 1
+  n_rows_noise = 0
 
   @property
   def goal(self) -> str:
+    text_repr = _get_rows_as_text(
+        self.params[sqlite_validators.ROW_OBJECTS],
+        self.params[_TEXT_REPRESENTATION_TYPE],
+    )
     return (
-        'Add the recipes from recipes.txt in Markor to the Broccoli recipe app.'
+        'Read the recipes from recipes.txt in Markor.'
+       f'And add the following recipes into the Broccoli app:\n{text_repr}'
     )
 
   def initialize_task(self, env: interface.AsyncEnv):
@@ -458,16 +463,21 @@ class RecipeAddMultipleRecipesFromMarkor(_RecipeAddMultipleRecipes):
 class RecipeAddMultipleRecipesFromMarkor2(RecipeAddMultipleRecipesFromMarkor):
   """Harder add recipe task, that involves navigating a large text file."""
 
-  n_rows = 3
-  n_rows_noise = 40
+  n_rows = 1
+  n_rows_noise = 0
   complexity = 6
 
   @property
   def goal(self) -> str:
     prep_time = self.params['prep_time']
+    text_repr = _get_rows_as_text(
+        self.params[sqlite_validators.ROW_OBJECTS],
+        self.params[_TEXT_REPRESENTATION_TYPE],
+    )
     return (
-        f'Add the recipes from recipes.txt in Markor that take {prep_time} to '
-        'prepare into the Broccoli recipe app.'
+        f'Read the recipes from recipes.txt in Markor that take {prep_time} to '
+        'prepare into the Broccoli recipe app. '
+        f'And add the following recipes into the Broccoli app:\n{text_repr}'
     )
 
   def initialize_task(self, env: interface.AsyncEnv):
@@ -520,14 +530,19 @@ class RecipeAddMultipleRecipesFromImage(_RecipeAddMultipleRecipes):
 
   app_names = (_APP_NAME, 'simple gallery pro')
   complexity = 6
-  n_rows = 3
-  n_rows_noise = 10
+  n_rows = 1
+  n_rows_noise = 0
 
   @property
   def goal(self) -> str:
+    text_repr = _get_rows_as_text(
+        self.params[sqlite_validators.ROW_OBJECTS],
+        self.params[_TEXT_REPRESENTATION_TYPE],
+    )
     return (
-        'Add the recipes from recipes.jpg in Simple Gallery Pro to the Broccoli'
-        ' recipe app.'
+        'Read the recipes from recipes.jpg in DCIM in Simple Gallery Pro to the Broccoli'
+        ' recipe app. Only one file in the DCIM, click it,'
+        f'And add the following recipes into the Broccoli app:\n{text_repr}'
     )
 
   def initialize_task(self, env: interface.AsyncEnv):
