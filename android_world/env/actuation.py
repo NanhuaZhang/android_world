@@ -78,7 +78,9 @@ def execute_adb_action(
   elif action.action_type == 'input_text':
     text = action.text
     if text:
-      step_data = {}
+      step_data = {
+        'input_text_rename': False
+      }
 
       if action.index is not None or (
           action.x is not None and action.y is not None
@@ -87,56 +89,45 @@ def execute_adb_action(
         click_y = None
         if action.index is not None:
           element = screen_elements[action.index]
-          if element.resource_name is not None and ('/new_name' in element.resource_name or '/save_image_filename' in element.resource_name):
-            adb_utils.issue_generic_request(
-                [
-                    'shell',
-                    'input',
-                    'keycombination',
-                    '113',
-                    '29',
-                    '&&',
-                    'input',
-                    'keyevent',
-                    '67',
-                ],
-                env,
-            )
-            time.sleep(1.0)
 
           # markor: add text to header 时放开
           # if element.resource_name == 'net.gsantner.markor:id/document__fragment__edit__highlighting_editor':
           #   click_x, click_y = 20, 310
-          #   text = action.text.replace("\n\n", "\n")
+          #   # 固定为两个换行符
+          #   text = action.text.rstrip('\n')
+          #   text = text + '\n\n'
         # First focus on enter text UI element.
-        click_action = copy.deepcopy(action)
-        click_action.action_type = 'click'
-        if click_x is not None and click_y is not None:
-          click_action.x = click_x
-          click_action.y = click_y
-          click_action.index = None
-        execute_adb_action(click_action, screen_elements, screen_size, env, status)
-        time.sleep(1.0)
+        if '/new_name' not in element.resource_name and '/save_image_filename' not in element.resource_name:
+          click_action = copy.deepcopy(action)
+          click_action.action_type = 'click'
+          if click_x is not None and click_y is not None:
+            click_action.x = click_x
+            click_action.y = click_y
+            click_action.index = None
+          execute_adb_action(click_action, screen_elements, screen_size, env, status)
+          time.sleep(1.0)
 
 
 
-        state = status.get_state(wait_to_stabilize=False)
-        step_data['action'] = 'click'
-        # step_data['action_output'] = click_action
-        step_data['before_screenshot'] = state.pixels.copy()
-        step_data['before_element_list'] = state.ui_elements
-        target_element = state.ui_elements[action.index]
+          state = status.get_state(wait_to_stabilize=False)
+          step_data['action'] = 'click'
+          # step_data['action_output'] = click_action
+          step_data['before_screenshot'] = state.pixels.copy()
+          step_data['before_element_list'] = state.ui_elements
+          target_element = state.ui_elements[action.index]
 
-        if click_x is not None and click_y is not None:
-          center_x, center_y = click_x, click_y
+          if click_x is not None and click_y is not None:
+            center_x, center_y = click_x, click_y
+          else:
+            center_x, center_y = target_element.bbox_pixels.center
+          click_point = (center_x, center_y)
+          step_data['start_coords']= click_point
+          step_data['end_coords']= click_point
+          step_data['summary'] = 'click the text box'
+          step_data['prompt_tokens'] = 0
+          step_data['completion_tokens'] = 0
         else:
-          center_x, center_y = target_element.bbox_pixels.center
-        click_point = (center_x, center_y)
-        step_data['start_coords']= click_point
-        step_data['end_coords']= click_point
-        step_data['summary'] = 'click the text box'
-        step_data['prompt_tokens'] = 0
-        step_data['completion_tokens'] = 0
+          step_data['input_text_rename'] = True
 
 
       if action.clear_text:
@@ -195,8 +186,7 @@ def execute_adb_action(
   elif action.action_type == 'scroll':
 
     screen_width, screen_height = screen_size
-    print(action.index)
-    if action.index:
+    if action.index is not None:
       x_min, y_min, x_max, y_max = (
           max(screen_elements[action.index].bbox_pixels.x_min, 0),
           max(screen_elements[action.index].bbox_pixels.y_min, 0),
@@ -209,8 +199,10 @@ def execute_adb_action(
     start_x, start_y = (x_min + x_max) // 2, (y_min + y_max) // 2
     direction = action.direction
     if direction == 'down':
+      # end_x, end_y = (x_min + x_max) // 2, (y_min + y_max) // 4
       end_x, end_y = (x_min + x_max) // 2, y_min
     elif direction == 'up':
+      # end_x, end_y = (x_min + x_max) // 2, (y_min + y_max) * 3 // 4
       end_x, end_y = (x_min + x_max) // 2, y_max
     elif direction == 'right':
       end_x, end_y = x_min, (y_min + y_max) // 2

@@ -451,6 +451,7 @@ Action: {{"action_type": "status", "goal_status": "infeasible"}}"""
           step_data['end_coords'] = (result[2],result[3])
 
       if converted_action.action_type == 'input_text':
+        if step_data is not None and result is not None and result['input_text_rename'] != True:
           click_step = result
           click_step['action_output'] = step_data['action_output']
           before_screenshot = step_data['before_screenshot']
