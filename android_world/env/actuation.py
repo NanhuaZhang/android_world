@@ -79,7 +79,9 @@ def execute_adb_action(
     text = action.text
     if text:
       step_data = {
-        'input_text_rename': False
+        # 'input_text_rename': False
+        # MarkorChangeNoteContent 時input-text前不需要click步驟
+        'input_text_rename': True
       }
 
       if action.index is not None or (
@@ -97,7 +99,7 @@ def execute_adb_action(
           #   text = action.text.rstrip('\n')
           #   text = text + '\n\n'
         # First focus on enter text UI element.
-        if '/new_name' not in element.resource_name and '/save_image_filename' not in element.resource_name:
+        if '/new_name' not in element.resource_name and '/save_image_filename' not in element.resource_name and step_data['input_text_rename'] != True:
           click_action = copy.deepcopy(action)
           click_action.action_type = 'click'
           if click_x is not None and click_y is not None:
