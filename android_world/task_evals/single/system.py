@@ -36,7 +36,15 @@ class _SystemBrightnessToggle(task_eval.TaskEval):
       'properties': {'max_or_min': {'type': 'string', 'enum': ['max', 'min']}},
       'required': ['max_or_min'],
   }
-  template = 'Turn brightness to the {max_or_min} value.'
+  # original template
+  # template = 'Turn brightness to the {max_or_min} value.'
+
+  # new template: add more instructions
+  template = (
+    'Turn brightness to the {max_or_min} value.'
+    ' Important: 1. Adjust the brightness in the display settings. '
+    '2. The brightness adjustment tool is a slider, scroll to the far {scroll} end of the slider !!!'
+  )
 
   def is_successful(self, env: interface.AsyncEnv) -> float:
     super().is_successful(env)
@@ -98,7 +106,7 @@ class SystemBrightnessMin(_SystemBrightnessToggle):
 
   @classmethod
   def generate_random_params(cls) -> dict[str, str]:
-    return {'max_or_min': 'min'}
+    return {'max_or_min': 'min', 'position': 'left', 'scroll': 'right'}
 
 
 class SystemBrightnessMax(_SystemBrightnessToggle):
@@ -113,7 +121,7 @@ class SystemBrightnessMax(_SystemBrightnessToggle):
 
   @classmethod
   def generate_random_params(cls) -> dict[str, str]:
-    return {'max_or_min': 'max'}
+    return {'max_or_min': 'max', 'position': 'right', 'scroll': 'left'}
 
 
 class _SystemWifiToggle(task_eval.TaskEval):

@@ -791,6 +791,7 @@ class MarkorAddNoteHeader(Markor):
       "Update the Markor note {original_name} by adding the following text,"
       ' along with a new blank line before the existing content: "{header}",'
       " and rename it to {new_name}."
+      " (Important: When renaming a file, you need to select all and then enter the new name, otherwise the file name you enter will be incorrect, do not repeat this action after entering)"
   )
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:

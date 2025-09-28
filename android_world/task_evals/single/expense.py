@@ -14,6 +14,7 @@
 
 """Tasks for managing expenses in an expense app."""
 
+import re
 import abc
 import dataclasses
 import random
@@ -37,6 +38,23 @@ _DB_KEY = 'expense_id'
 # How to represent recipes in text form.
 _TEXT_REPRESENTATION_TYPE = 'text_representation_type'
 
+def add_reimbursable_to_notes(data):
+    # 将字符串按行分割
+    lines = data.splitlines()
+    
+    # 处理每一行，添加 ". Reimbursable." 到 note 后
+    updated_lines = []
+    for line in lines:
+        if line.startswith("name"):  # 保留标题行
+            updated_lines.append(line)
+        else:
+            parts = line.split('|')
+            # 添加 ". Reimbursable." 到 note 部分
+            parts[3] += ". Reimbursable."
+            updated_lines.append('|'.join(parts))
+    
+    # 将处理后的行重新组合成一个字符串
+    return '\n'.join(updated_lines)
 
 def _get_random_timestamp() -> int:
   """Gets a timestep in the current month, up to the current day (Oct 15)."""
@@ -346,10 +364,14 @@ class ExpenseAddMultipleFromMarkor(_ExpenseAddMultiple):
         self.params[sqlite_validators.ROW_OBJECTS],
         self.params[_TEXT_REPRESENTATION_TYPE],
     )
+
+    # 任务初始化数据时会在目标文本末尾加上"Reimbursable"，这里也要加上
+    updated_repr = add_reimbursable_to_notes(text_repr)
+
     return (
       "Go through the transactions in my_expenses.txt in Markor. Log the "
       f"reimbursable transactions in the {_APP_NAME}."
-      f" Steps(important!!!!!): There is no OCR function in the app, you need to recognize the text ({text_repr}) on the file yourself,"
+      f" Steps(important!!!!!): There is no OCR function in the app, you need to recognize the text ({updated_repr}) on the file yourself,"
       " There are two expense records on the file, then open pro expense and add the expenses based on the text content."
       " The expense category list can be scrolled left and right, and there is no need to enter the $ symbol in the amount input box"
     )
