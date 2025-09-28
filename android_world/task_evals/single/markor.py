@@ -706,6 +706,9 @@ class MarkorChangeNoteContent(Markor):
   template = (
       'Update the content of {original_name} to "{updated_content}" in Markor'
       " and change its name to {new_name}."
+      " (Important: 1. When updating the content, you need to select all and then enter the new content '{updated_content}'!!!!!"
+      " 2. Remember to click the save icon before navigate back."
+      " 3. When renaming a file, you need to select all and then enter the new name, otherwise the file name you enter will be incorrect.)"
   )
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:
@@ -716,12 +719,16 @@ class MarkorChangeNoteContent(Markor):
         env.controller,
         content=user_data_generation.generate_random_string(20),
     )
-    user_data_generation.generate_noise_files(
-        self.params["original_name"],
-        device_constants.MARKOR_DATA,
-        env.controller,
-        _NOTE_TITLES,
-    )
+    # 过滤出在 ‘original_name’ 前面的文件名
+    titles = [file for file in _NOTE_TITLES if file < self.params["original_name"]]
+    if len(titles) >= 2:
+      user_data_generation.generate_noise_files(
+          self.params["original_name"],
+          device_constants.MARKOR_DATA,
+          env.controller,
+          titles,
+          2,
+      )
     if not file_utils.check_file_or_folder_exists(
         self.params["original_name"],
         device_constants.MARKOR_DATA,
@@ -791,6 +798,8 @@ class MarkorAddNoteHeader(Markor):
       "Update the Markor note {original_name} by adding the following text,"
       ' along with a new blank line before the existing content: "{header}",'
       " and rename it to {new_name}."
+      " (Important: 1. When renaming a file, you need to select all and then enter the new name, otherwise the file name you enter will be incorrect, do not repeat this action after entering."
+      " 2. Remember to click the save icon before returning.)"
   )
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:
