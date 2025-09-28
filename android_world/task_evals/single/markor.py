@@ -706,6 +706,8 @@ class MarkorChangeNoteContent(Markor):
   template = (
       'Update the content of {original_name} to "{updated_content}" in Markor'
       " and change its name to {new_name}."
+      " (Important: 1. When updating the content, you need to select all and then enter the new content '{updated_content}'."
+      " 2. When renaming a file, you need to select all and then enter the new name, otherwise the file name you enter will be incorrect.)"
   )
 
   def initialize_task(self, env: interface.AsyncEnv) -> None:
