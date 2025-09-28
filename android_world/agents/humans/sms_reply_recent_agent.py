@@ -203,7 +203,7 @@ def _generate_ui_elements_description_list_full(
   return tree_info
 
 
-class SmsSendCopy(base_agent.EnvironmentInteractingAgent):
+class SmsReplyRecent(base_agent.EnvironmentInteractingAgent):
   """Text only autonomous agent for Android."""
 
   def __init__(
@@ -234,38 +234,29 @@ class SmsSendCopy(base_agent.EnvironmentInteractingAgent):
 
   def steps(self, number:str, message:str):
       reason = [
-          "To start the process of sending a message in Simple SMS Messenger, the first step is to open the Simple SMS Messenger app. Using the `open_app` action is the most direct way to launch the app.",
-          "To start composing a new text message, I need to find the previous conversation.",
-          "It seems that there is no previous conversation. I made a mistake, need to go back.",
-          "To send a message to a specific number, the first step is to start a new conversation. The UI element 1 (conversations_fab) is a clickable ImageButton, likely used to initiate composing a new message. Clicking it will allow proceeding to enter the recipient's number and paste the clipboard content.",
-          f"To proceed with sending a message, the recipient's phone number ({number}) needs to be entered into the \"Add Contact or Number…\" text field (UI element 2). Using the `input_text` action directly on this field will efficiently input the number, aligning with the task's progression.",
-          "To proceed with sending the message, we need to confirm the recipient number by clicking the \"confirm\" UI element (index 3), which will navigate to the conversation screen where we can paste the clipboard content into the message field.",
-          "To paste the clipboard content into the message input field, I need to initiate the text selection/paste menu by long pressing on the editable text field (UI element 7, \"Type a message…\"). This will allow accessing the paste option for inserting clipboard content.",
-          "To insert the clipboard content into the message field, we need to click the \"Paste\" option (UI element 52) which appeared after long - pressing the text field. This action will populate the text field with the clipboard content, moving closer to sending the message.",
-          "The message content from the clipboard has been successfully pasted into the message field (UI element 7), and now the next step to complete the task is to send the message. The \"SMS\" send button (UI element 8) is visible and clickable, so clicking it will send the message to the specified recipient.",
-          f"The task of sending a message to {number} with the clipboard content in Simple SMS Messenger has been successfully completed, as evidenced by the sent message visible in the conversation screen. No further actions are required.",
+        "To start replying to the most recent text message, I need to open the Simple SMS Messenger app. Since the current screen is the home screen, using the `open_app` action to launch the app is the logical first step.",
+        "To reply to the most recent text message, I first need to open the conversation. The most recent conversation is visible on the screen, and clicking on it (likely the area associated with the conversation entry, such as the elements showing the contact, message snippet, and time) will open the chat window where I can compose a reply.",
+        "To reply to the most recent text message, I need to click the Plus icon to type the message.",
+        "Currently turn into an attachment selection view, there is no field to type. I need to go back.",
+        f"To reply to the most recent text message, I need to type the specified message into the text input field. this element is the editable text field labeled \"Type a message…\", which is the correct target for entering the reply. Using the `input_text` action here will allow me to type \"{message}\" into this field in one step, progressing toward sending the reply.",
+        f"To complete the task of replying to the most recent text message, the next step is to send the composed message. this element is the \"SMS\" button (send button) which is clickable and visible, so clicking it will send the message \"{message}\" to the recipient.",
+        f"The message \"{message}\" has been successfully sent and is visible in the chat window, indicating that the goal of replying to the most recent text message has been achieved. No further actions are required.",
       ]
 
       steps = [
           f"""Reason: {reason[0]}
             Action: {{"action_type": "open_app", "app_name": "Simple SMS Messenger"}}""",
           f"""Reason: {reason[1]}
-            Action: {{"action_type": "click", "index": 2}}""",
+            Action: {{"action_type": "click", "index": 7}}""",
           f"""Reason: {reason[2]}
-            Action: {{"action_type": "navigate_back"}}""",
+            Action: {{"action_type": "click", "index": 6}}""",
           f"""Reason: {reason[3]}
-            Action: {{"action_type": "click", "index": 1}}""",
+            Action: {{"action_type": "navigate_back"}}""",
           f"""Reason: {reason[4]}
-            Action: {{"action_type": "input_text", "text": "{number}", "index": 2}}""",
+            Action: {{"action_type": "input_text", "text": "{message}", "index": 7}}""",
           f"""Reason: {reason[5]}
-            Action: {{"action_type": "click", "index": 3 }}""",
-          f"""Reason: {reason[6]}
-            Action: {{"action_type": "long_press", "index": 7}}""",
-          f"""Reason: {reason[7]}
-            Action: {{"action_type": "click", "index": 53}}""",
-          f"""Reason: {reason[8]}
             Action: {{"action_type": "click", "index": 8}}""",
-          f"""Reason: {reason[9]}
+          f"""Reason: {reason[6]}
             Action: {{"action_type": "status", "goal_status": "complete"}}""",
       ]
 

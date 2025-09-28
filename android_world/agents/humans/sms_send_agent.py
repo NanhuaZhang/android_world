@@ -244,7 +244,7 @@ class SmsSend(base_agent.EnvironmentInteractingAgent):
           f"To compose the message, I need to type \"{message}\" into the editable text field (UI element 7) which is labeled \"Type a message…\". Using the `input_text` action will efficiently enter the text into this field, progressing toward sending the SMS.",
           # f"Input {message}",
           "To complete the task of sending the SMS, the next logical step is to click the send button (UI element 8) which is visible and clickable on the current screen. This action will transmit the composed message to the specified recipient.",
-          "The task of sending a text message to 18360022364 with the specified content using Simple SMS Messenger has been successfully completed, as evidenced by the message appearing in the chat. Therefore, the task can now be marked as complete."
+          f"The task of sending a text message to {number} with the specified content using Simple SMS Messenger has been successfully completed, as evidenced by the message appearing in the chat. Therefore, the task can now be marked as complete."
       ]
 
       steps = [
