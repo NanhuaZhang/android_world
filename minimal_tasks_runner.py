@@ -30,6 +30,7 @@ import re
 from typing import Type
 
 from android_world.agents.humans.draw_pro_agent import DrawPro
+from android_world.agents.humans.change_markor_content import ChangeMarkorContent
 from android_world.task_evals.single import vlc
 from android_world.utils import datetime_utils
 import pandas as pd
@@ -1065,6 +1066,43 @@ def _main() -> None:
         #             'noise_files2': [generate_file_name() for _ in range(0)],
         #         }
 
+        if task_value == 'MarkorAddNoteHeader':
+            result = extract_from_template(
+                (
+                    "Update the Markor note {original_name} by adding the following text,"
+                    ' along with a new blank line before the existing content: "{header}",'
+                    " and rename it to {new_name}."
+                ),
+                row['instruction']
+            )
+            if result is not None:
+              original_name, header, new_name = result
+              if original_name is not None and new_name is not None and header is not None:
+                original_content = generate_random_sentence()
+                params = {
+                  "original_name": original_name,
+                  "original_content": original_content,
+                  "new_name": new_name,
+                  "header": header,
+                }
+
+        if task_value == 'MarkorChangeNoteContent':
+            result = extract_from_template(
+                (
+                    'Update the content of {original_name} to "{updated_content}" in Markor'
+                    " and change its name to {new_name}."
+                ),
+                row['instruction']
+            )
+            if result is not None:
+                original_name, updated_content, new_name = result
+                if original_name is not None and new_name is not None and updated_content is not None:
+                    params = {
+                    "original_name": original_name,
+                    "updated_content": updated_content,
+                    "new_name": new_name,
+                    }
+
         if params is None:
             continue
 
@@ -1078,8 +1116,12 @@ def _main() -> None:
         #     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
         # if _AGENT_TYPE.value == 'openai4o':
         #     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
-        agent = DrawPro(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        agent.steps(params['file_name'])
+        file_count = 3
+        titles = [file for file in _NOTE_TITLES if file < params["original_name"]]
+        if len(titles) < 2:
+            file_count = 1
+        agent = ChangeMarkorContent(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        agent.steps(file_count, params['original_name'], params['updated_content'], params['new_name'])
         agent_successful = True
 
         print('Goal: ' + str(task.goal))
