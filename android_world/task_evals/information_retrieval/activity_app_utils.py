@@ -44,6 +44,7 @@ def setup_task_state(
     exclusion_conditions: list[task_pb2.ExclusionCondition],
     env: interface.AsyncEnv,
     default_activities: list[state_pb2.SportsActivity] = [],
+    isActivitySortFirst: bool = False,
 ) -> None:
   clear_db(env)
   activities = []
@@ -55,7 +56,8 @@ def setup_task_state(
   for activity in relevant_state.sports_activities:
     print(f"state activity: {activity}")
     activities.append(_create_activity_from_proto(activity))
-  activities += _generate_random_activities(2, exclusion_conditions)
+  if not isActivitySortFirst:
+    activities += _generate_random_activities(2, exclusion_conditions)
   random.shuffle(activities)
   _add_activities(activities, env)
 

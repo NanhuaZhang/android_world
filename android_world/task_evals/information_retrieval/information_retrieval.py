@@ -99,82 +99,74 @@ class InformationRetrieval(task_eval.TaskEval, abc.ABC):
     if self.is_tasks_task():
       task_app_utils.setup_task_state(relevant_state.tasks_app, exclusions, env)
     if self.is_sports_task():
-      categories =[
-        "running",
-        "cycling",
-        "swimming",
-        "hiking",
-        "mountain biking",
-        "kayaking",
-        "skiing",
-        "snow boarding",
-        "skate boarding",
-        "climbing",
-        "inline skating",
-        "sailing"
-      ]
       default_sports_activities = []
       existing_categories = []
+      isActivitySortFirst = False
       # 获取 activities 中存在的 category
       for activity in relevant_state.sports_activity_app.sports_activities:
         # 假设每个活动都有一个 'category' 属性
+        if activity.category == "climbing":
+          isActivitySortFirst = True
         if hasattr(activity, 'category'):
+          if activity.category not in existing_categories:
             existing_categories.append(activity.category)
 
       # 过滤 categories，留下 activities 中没有的 category
-      filtered_categories = [category for category in categories if category not in existing_categories]
+      # filtered_categories = [category for category in categories if category not in existing_categories]
       # 在第一项插入非目标分类数据，避免app在取消选中后面分类时会同时取消第一项分类的bug出现
-      for i in [1,2]:
-        default_sports_activities.append(state_pb2.SportsActivity(
-          start_date=random.choice([
-            "October 9 2023",
-            "October 10 2023",
-            "October 11 2023",
-            "October 12 2023",
-            "October 13 2023",
-            "October 14 2023",
-            "October 15 2023"
-          ]),
-          start_time=random.choice([
-            "8:00am", "10:30am", "5:00pm", "6:30am", "9:45am", "2:15pm", "7:00am", "11:00am", "4:00pm", "1:30pm"
-          ]),
-          duration=random.choice([
-            "15", "30", "45", "60", "90", "120", "40", "50", "75", "80", "20", "105", "135"
-          ]),
-          total_distance=random.choice([
-            "100", "300", "500", "800", "1000", "1200", "1500", "2000", "2500", "3000"
-          ]),
-          name = random.choice([
-              "More tired than usual today",
-              "Need more strength and conditioning",
-              "Slow day",
-              "Laps around the lake",
-              "Trying and failing to keep up with John",
-              "Quick outing",
-              "Recovery day",
-              "Active Rest Day",
-              "Skill work"
-          ]),
-          description=random.choice([
-            "Shared laughs and made memories with friends.",
-            "Enjoyed a fun outing with good company.",
-            "Had a blast with my favorite people.",
-            "Created lasting memories that I'll cherish.",
-            "Experienced something unforgettable.",
-            "Captured moments that will bring a smile to my face.",
-            "Wandered off the beaten path.",
-            "Ventured into uncharted territory.",
-            "Stepped outside my comfort zone.",
-            "Pushed my boundaries and tried something different.",
-            "Tested my limits and grew as a person."
-          ]),
-          category=filtered_categories[0]
-        ))
+      if isActivitySortFirst != True:
+        for i in [1,2,3,4]:
+          default_sports_activities.append(state_pb2.SportsActivity(
+            start_date=random.choice([
+              "October 9 2023",
+              "October 10 2023",
+              "October 11 2023",
+              "October 12 2023",
+              "October 13 2023",
+              "October 14 2023",
+              "October 15 2023"
+            ]),
+            start_time=random.choice([
+              "8:00am", "10:30am", "5:00pm", "6:30am", "9:45am", "2:15pm", "7:00am", "11:00am", "4:00pm", "1:30pm"
+            ]),
+            duration=random.choice([
+              "15", "30", "45", "60", "90", "120", "40", "50", "75", "80", "20", "105", "135"
+            ]),
+            total_distance=random.choice([
+              "100", "300", "500", "800", "1000", "1200", "1500", "2000", "2500", "3000"
+            ]),
+            name = random.choice([
+                "More tired than usual today",
+                "Need more strength and conditioning",
+                "Slow day",
+                "Laps around the lake",
+                "Trying and failing to keep up with John",
+                "Quick outing",
+                "Recovery day",
+                "Active Rest Day",
+                "Skill work"
+            ]),
+            description=random.choice([
+              "Shared laughs and made memories with friends.",
+              "Enjoyed a fun outing with good company.",
+              "Had a blast with my favorite people.",
+              "Created lasting memories that I'll cherish.",
+              "Experienced something unforgettable.",
+              "Captured moments that will bring a smile to my face.",
+              "Wandered off the beaten path.",
+              "Ventured into uncharted territory.",
+              "Stepped outside my comfort zone.",
+              "Pushed my boundaries and tried something different.",
+              "Tested my limits and grew as a person."
+            ]),
+            category="climbing"
+          ))
       activity_app_utils.setup_task_state(
           relevant_state.sports_activity_app,
           exclusions,
           env,
           default_sports_activities,
+          isActivitySortFirst
       )
     if self.is_notes_task():
       joplin_app_utils.setup_task_state(

@@ -215,8 +215,10 @@ class VlcCreateTwoPlaylists(task_eval.TaskEval):
     
     return (
       f'{goal1}. And then, {goal2}. '
-      '(The two playlists have nothing to do with each other.'
-      ' Important: When creating a playlist, do not uncheck anyone after selecting it, regardless of whether it is correct or not!!!!!!!)'
+      "(Important: 1. Click to open the VLC app first."
+      " 2. The contents of the two playlists are completely independent, so don't choose the wrong file."
+      " 3. Just click on the file name by order you are given, don't just pick it randomly like a fool."
+      " 4. Prevent clicking on previously clicked items, regardless of whether it is correct or not.)"
     )
 
   def initialize_task(self, env: interface.AsyncEnv):

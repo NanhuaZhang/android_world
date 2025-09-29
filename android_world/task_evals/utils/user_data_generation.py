@@ -86,15 +86,17 @@ def generate_noise_files(
     n: Maximum number of files.
   """
   assert variant_names
-  num_random_files = random.randint(1, n)
+  num_random_files = n
   names = set()
-  while len(names) < num_random_files:
-    if random.random() <= 0.85:
-      selected_name = random.choice(variant_names)
-      filename = generate_modified_file_name(selected_name)
-    else:
-      filename = generate_modified_file_name(base_file_name)
+  # while len(names) < num_random_files:
+  #   if random.random() <= 0.85:
+  #     selected_name = random.choice(variant_names)
+  #     filename = generate_modified_file_name(selected_name)
+  #   else:
+  #     filename = generate_modified_file_name(base_file_name)
 
+  for i in range(n):
+    filename = random.choice(variant_names)
     no_extension = len(filename.split(".")) == 1
     if no_extension:
       _, extension = os.path.splitext(random.choice(variant_names))

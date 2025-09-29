@@ -1320,11 +1320,13 @@ tasks {
   }
 }
 
+# use openai4o
 tasks {
   name: "TasksHighPriorityTasksDueOnDate"
   # prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list."
-  prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page. Each item is displayed with a date, determine whether the task date is on the specified date"
-  complexity: 2
+  prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list. (Important: 1. In the menu panel (the first button in footer left), 2. click the plus icon in the filters section enter custom filter page, add priority filter, 3. Enter custom filter page, only add priority filter (must remember!!!!!!), save filter and back to tasks page. 4. Each item is displayed with a date, determine whether the task date is on the specified date.)"
+  # prompt: "Which tasks with high priority are due {date} in the Tasks app? Answer with the title only. If there are multiples titles, format your answer in a comma separated list. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page. Add priority filter. Each item is displayed with a date, determine whether the task date is on the specified date"
+  complexity: 3
   relevant_state {
     state {
       tasks_app {
@@ -1405,7 +1407,7 @@ tasks {
 tasks {
   name: "TasksDueNextWeek"
   # prompt: "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer."
-  prompt: "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer. Tips(important!!!!): 1. In the menu panel (the first button in footer left), 2. click the plus icon in the filters section, 3. add start date and end date filter next week tasks, save filter and back to tasks page, 4. The count of filtered results needs to be subtracted from the count of completed."
+  prompt: "How many tasks do I have due next week in Tasks app? Assume the week starts from Monday. Express your answer as a single integer. Tips(important!!!!): 1. In the menu panel (the first button in footer left), 2. click the plus icon in the filters section, 3. Add start date and end date filter next week tasks, save filter and back to tasks page, 4. The count of filtered results needs to be subtracted from the count of completed."
   complexity: 3
   relevant_state {
     state: {
@@ -2064,8 +2066,9 @@ tasks {
 
 tasks {
   name: "SportsTrackerActivitiesCountForWeek"
-  prompt: "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer."
-  complexity: 1
+  # prompt: "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer."
+  prompt: "How many {category} activities did I do this week in the OpenTracks app? Assume the week starts from Monday. Express your answer as a single integer. Tips(Important!!!!): Need to filter the activity first. The first button at the bottom of the page takes you to the filter page. Filter target category and time range."
+  complexity: 3
   relevant_state {
     state {
       sports_activity_app {
@@ -2289,7 +2292,7 @@ tasks {
 tasks {
   name: "SportsTrackerActivityDuration"
   # prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer."
-  prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer. Tips(Important!!!!): The first button at the bottom of the page takes you to the filter page."
+  prompt: "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer. Tips(Important!!!!): Need to filter the activity first. The first button at the bottom of the page takes you to the filter page."
   complexity: 2
   relevant_state {
     state {
@@ -2499,7 +2502,7 @@ tasks {
 
 tasks {
   name: "SportsTrackerLongestDistanceActivity"
-  prompt: "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer."
+  prompt: "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer. Tips(Important!!!!): Need to filter the activity first. The first button at the bottom of the page takes you to the filter page, and do not navigate back. Think about the answer on the statistics page after filtering is completed."
   complexity: 2
   relevant_state {
     state {

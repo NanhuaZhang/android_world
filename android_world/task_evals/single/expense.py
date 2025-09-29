@@ -366,6 +366,7 @@ class ExpenseAddMultipleFromMarkor(_ExpenseAddMultiple):
     )
 
     # 任务初始化数据时会在目标文本末尾加上"Reimbursable"，这里也要加上
+    # updated_repr = text_repr
     updated_repr = add_reimbursable_to_notes(text_repr)
 
     return (
