@@ -116,7 +116,7 @@ _ADB_PATH = flags.DEFINE_string(
 )
 _EMULATOR_SETUP = flags.DEFINE_boolean(
     'perform_emulator_setup',
-    False,
+    True,
     'Whether to perform emulator setup. This must be done once and only once'
     ' before running Android World. After an emulator is setup, this flag'
     ' should always be False.',
@@ -543,8 +543,26 @@ def read_csv():
     df = pd.read_csv('output.csv')  # 替换为你的文件
     return df
 
-# retry_task = []
-retry_task =[]
+retry_task = [
+576,
+708,
+1262,
+1551,
+2157,
+2209,
+2469,
+2880,
+3433,
+3533,
+3634,
+3735,
+3939,
+4093,
+4395,
+4741,
+5032,
+5129]
+
 complete_task = []
 def _main() -> None:
     """Runs a single task."""
@@ -805,7 +823,6 @@ def _main() -> None:
         #             'activity_name': 'cycling',
         #             'activity_description': 'Shared laughs and made memories with friends.'
         #         }
-
         # if task_value == 'SportsTrackerActivityDuration':
         #     category,date= extract_from_template(
         #         "How long was my {category} activity {date} in the OpenTracks app? Express your answer in minutes as a single integer.",
@@ -932,7 +949,6 @@ def _main() -> None:
         #                 "Tested my limits and grew as a person."
         #             ]),
         #         }
-
         # if task_value == 'SportsTrackerTotalDistanceForCategoryOverInterval':
         #     category,start_date,end_date= extract_from_template(
         #         "What was the total distance covered for {category} activities in the OpenTracks app from {start_date} to {end_date}? Express your answer as a single number in meters rounded to the nearest integer.",
@@ -951,109 +967,58 @@ def _main() -> None:
         #             'activity_description': 'Shared laughs and made memories with friends.'
         #         }
 
-        # if task_value == 'RecipeDeleteMultipleRecipesWithConstraint':
-        #     ingredient = extract_from_template('Delete the recipes from Broccoli app that use {ingredient} in the'
-        # ' directions.',row['instruction'])
-        #     ingredient = list(ingredient)[0]
-        #     if ingredient is not None:
-        #         noise = sqlite_schema_utils.get_random_items(
-        #             1,
-        #             _generate_random_recipe,
-        #             replacement=False,
-        #             filter_fn=lambda r: ingredient not in r.directions.lower(),
-        #         )
-        #         n_rows = 3
-        #         targets = []
-        #         while n_rows > 0:
-        #             try:
-        #                 targets = sqlite_schema_utils.get_random_items(
-        #                     n_rows,
-        #                     _generate_random_recipe,
-        #                     replacement=False,
-        #                     filter_fn=lambda r: ingredient in r.directions.lower(),
-        #                 )
-        #                 break
-        #             except ValueError:
-        #                 n_rows -= 1
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: targets,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: [],
-        #             'ingredient': ingredient,
-        #         }
+        if task_value == 'RecipeDeleteMultipleRecipesWithConstraint':
+            ingredient = extract_from_template('Delete the recipes from Broccoli app that use {ingredient} in the'
+        ' directions.',row['instruction'])
+            ingredient = list(ingredient)[0]
+            if ingredient is not None:
+                noise = sqlite_schema_utils.get_random_items(
+                    6,
+                    _generate_random_recipe,
+                    replacement=False,
+                    filter_fn=lambda r: ingredient not in r.directions.lower(),
+                )
+                n_rows = 3
+                targets = []
+                while n_rows > 0:
+                    try:
+                        targets = sqlite_schema_utils.get_random_items(
+                            n_rows,
+                            _generate_random_recipe,
+                            replacement=False,
+                            filter_fn=lambda r: ingredient in r.directions.lower(),
+                        )
+                        break
+                    except ValueError:
+                        n_rows -= 1
+                params = {
+                    sqlite_validators.ROW_OBJECTS: targets,
+                    sqlite_validators.NOISE_ROW_OBJECTS: [],
+                    'ingredient': ingredient,
+                }
         # if task_value == 'VlcCreatePlaylist':
-        #     playlist_name, files = extract_from_template(
-        #         'Create a playlist titled "{playlist_name}" with the following files'
-        #         ' in VLC (located in Internal Memory/VLCVideos), in order: {files}'
-        #         ,
-        #         row['instruction']
-        #     )
+        #   playlist_name,files = extract_from_template(
+        #       'Create a playlist titled "{playlist_name}" with the following files'
+        #       ' in VLC (located in Internal Memory/VLCVideos), in order: {files}'
+        #       ,
+        #     row['instruction']
+        #   )
         #
-        #     if playlist_name is not None and files is not None:
-        #         files = files.split(', ')
-        #         params = {
-        #             'playlist_name': playlist_name,
-        #             'files': files,
-        #             'noise_files': [generate_file_name() for _ in range(1)],
-        #         }
-
-        if task_value == 'SimpleDrawProCreateDrawing':
-          file_name = extract_from_template(
-            "Create a new drawing in Simple Draw Pro. Name it {file_name}. Save it in the Pictures folder within the sdk_gphone_x86_64 storage area.",
-            row['instruction']
-          )
-          file_name = list(file_name)[0]
-          if file_name is not None:
-            params = {
-              'file_name': file_name,
-              'text': '',
-            }
-
-        # if task_value == 'ExpenseAddMultiple' or task_value == 'ExpenseAddSingle':
-        #     type, results = extract_expense_add_multiple(row['instruction'])
-        #     if type is not None and len(results) > 0:
-        #         target_rows: list[sqlite_schema_utils.Expense] = []
-        #         for result in results:
-        #             if result['amount'] is not None and result['category'] is not None and result['note'] is not None:
-        #                 expense_unix_time_s = _get_random_timestamp()
-        #                 expense_unix_time_ms = expense_unix_time_s * 1000
-        #                 category_id = sqlite_schema_utils.Expense.category_name_to_id[result['category']]
-        #                 target_rows.append(sqlite_schema_utils.Expense(
-        #                     result['name'].strip("\n\r"),
-        #                     int(float(result['amount']) * 100),
-        #                     category_id,
-        #                     result['note'].strip("\n\r"),
-        #                     expense_unix_time_ms,
-        #                     expense_unix_time_ms,
-        #                 ))
-        #         noise_rows = sqlite_schema_utils.get_random_items(
-        #             10,
-        #             _generate_expense,
-        #             replacement=False,
-        #             filter_fn=lambda r: all(r.name != t.name for t in target_rows),
-        #         )
-        #         params = {
-        #             sqlite_validators.ROW_OBJECTS: target_rows,
-        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_rows,
-        #             'text_representation_type': type,
+        #   if playlist_name is not None and files is not None:
+        #       files = files.split(', ')
+        #       params = {
+        #           'playlist_name': playlist_name,
+        #           'files': files,
+        #           'noise_files': [generate_file_name() for _ in range(2)],
         #         }
         #
-        # if task_value == 'RecipeDeleteDuplicateRecipes':
-        #     rows = sqlite_schema_utils.get_random_items(
-        #         1+ 1,
-        #         _generate_random_recipe,
-        #         replacement=False,
-        #     )
-        #     target = rows.pop()
-        #     params = { sqlite_validators.ROW_OBJECTS: [target, target],
-        # sqlite_validators.NOISE_ROW_OBJECTS: rows,
-        #                }
         #
         # if task_value == 'VlcCreateTwoPlaylists':
-        #     playlist_name1, files1, playlist_name2, files2 = extract_from_template(
+        #     playlist_name1, files1,playlist_name2, files2= extract_from_template(
         #         'Create a playlist titled "{playlist_name1}" with the following files in VLC (located in Internal Memory/VLCVideos), in order: {files1}. And then, create a playlist titled "{playlist_name2}" with the following files in VLC, in order: {files2}.',
         #         row['instruction']
         #     )
-        #     print(f'{playlist_name1} and {playlist_name2},{files1} and {files2}')
+        #
         #     if playlist_name1 is not None and files1 is not None and playlist_name2 is not None and files2 is not None:
         #         files1 = files1.split(', ')
         #         files2 = files2.split(', ')
@@ -1062,46 +1027,75 @@ def _main() -> None:
         #             'files1': files1,
         #             'playlist_name2': playlist_name2,
         #             'files2': files2,
-        #             'noise_files1': [],
-        #             'noise_files2': [generate_file_name() for _ in range(0)],
+        #             'noise_files1': [generate_file_name() for _ in range(2)],
+        #             'noise_files2': [generate_file_name() for _ in range(2)],
         #         }
-
-        if task_value == 'MarkorAddNoteHeader':
-            result = extract_from_template(
-                (
-                    "Update the Markor note {original_name} by adding the following text,"
-                    ' along with a new blank line before the existing content: "{header}",'
-                    " and rename it to {new_name}."
-                ),
-                row['instruction']
-            )
-            if result is not None:
-              original_name, header, new_name = result
-              if original_name is not None and new_name is not None and header is not None:
-                original_content = generate_random_sentence()
-                params = {
-                  "original_name": original_name,
-                  "original_content": original_content,
-                  "new_name": new_name,
-                  "header": header,
-                }
-
-        if task_value == 'MarkorChangeNoteContent':
-            result = extract_from_template(
-                (
-                    'Update the content of {original_name} to "{updated_content}" in Markor'
-                    " and change its name to {new_name}."
-                ),
-                row['instruction']
-            )
-            if result is not None:
-                original_name, updated_content, new_name = result
-                if original_name is not None and new_name is not None and updated_content is not None:
-                    params = {
-                    "original_name": original_name,
-                    "updated_content": updated_content,
-                    "new_name": new_name,
-                    }
+        #
+        # if task_value == 'MarkorMergeNotes':
+        #   options = extract_from_template(
+        #     (
+        #         "Merge the contents of Markor notes {file1_name}, {file2_name} and"
+        #         " {file3_name} (in the same order) into a new Markor note named"
+        #         " {new_file_name} and save it. Add a new line between the content of each"
+        #         " note."
+        #     ),
+        #     row['instruction']
+        #   )
+        #   if options is not None:
+        #     file1_name, file2_name, file3_name, new_file_name = options
+        #     params = {
+        #       'file1_name': file1_name,
+        #       'file2_name': file2_name,
+        #       'file3_name': file3_name,
+        #       'new_file_name': new_file_name,
+        #       "file1_content": user_data_generation.generate_random_string(20),
+        #       "file2_content": user_data_generation.generate_random_string(20),
+        #       "file3_content": user_data_generation.generate_random_string(20),
+        #     }
+        #
+        # if task_value == 'SimpleCalendarDeleteOneEvent':
+        #     year, month, day, hour, event_title = extract_from_template(
+        #         (
+        #             "In Simple Calendar Pro, delete the calendar event on"
+        #             " {year}-{month}-{day} at {hour}h with the title '{event_title}'"
+        #         ),
+        #         row['instruction']
+        #     )
+        #     if year is not None and month is not None and day is not None and hour is not None and event_title is not None:
+        #         year = int(year)
+        #         month = int(month)
+        #         day = int(day)
+        #         hour = int(hour)
+        #         # 创建一个 datetime 对象
+        #         dt = datetime.datetime(year, month, day, hour)
+        #         # 将 datetime 对象转换为 Unix 时间戳
+        #         unix_timestamp = int(dt.timestamp()) + (8*60*60)
+        #         event: sqlite_schema_utils.CalendarEvent = events_generator.generate_event(
+        #             unix_timestamp,
+        #             event_title
+        #         )
+        #         noise_events = generate_noise_events(
+        #             [event],
+        #             5,
+        #             filter_fn=(
+        #                 lambda candidate: (candidate.start_datetime != event.start_datetime)
+        #                 and (candidate.title != event.title)
+        #             ),
+        #         )
+        #         params = {
+        #             'year': year,
+        #             'month': month,
+        #             'day': day,
+        #             'hour': hour,
+        #             'duration_mins': event.duration_mins,
+        #             'event_title': event.title,
+        #             'event_description': event.description,
+        #             sqlite_validators.ROW_OBJECTS: [event],
+        #             sqlite_validators.NOISE_ROW_OBJECTS: noise_events,
+        #         }
+        #
+        # if task_value == 'ExpenseAddMultipleFromMarkor':
+        #   params = task_type.generate_random_params()
 
         if params is None:
             continue
@@ -1111,30 +1105,30 @@ def _main() -> None:
         task = task_type(params)
         task.initialize_task(env)
 
-        # agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        # if _AGENT_TYPE.value == 'openai':
-        #     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
-        # if _AGENT_TYPE.value == 'openai4o':
-        #     agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
-        file_count = 3
-        titles = [file for file in _NOTE_TITLES if file < params["original_name"]]
-        if len(titles) < 2:
-            file_count = 1
-        agent = ChangeMarkorContent(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        agent.steps(file_count, params['original_name'], params['updated_content'], params['new_name'])
-        agent_successful = True
+        agent = Doubao(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        if _AGENT_TYPE.value == 'openai':
+            agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-mini-2024-07-18'))
+        if _AGENT_TYPE.value == 'openai4o':
+            agent = t3a.T3A(env, infer.Gpt4Wrapper('gpt-4o-2024-11-20'))
+        # file_count = 3
+        # titles = [file for file in _NOTE_TITLES if file < params["original_name"]]
+        # if len(titles) < 2:
+        #     file_count = 1
+        # agent = ChangeMarkorContent(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        # agent.steps(file_count, params['original_name'], params['updated_content'], params['new_name'])
+        # agent_successful = True
 
         print('Goal: ' + str(task.goal))
-        # is_done = False
-        # for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
-        #     response = agent.step(task.goal)
-        #     if count_key_values(agent.history, 'action', 'wait') >= 2:
-        #         break
-        #
-        #     if response.done:
-        #         is_done = True
-        #         break
-        # agent_successful = is_done and task.is_successful(env) == 1
+        is_done = False
+        for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
+            response = agent.step(task.goal)
+            if count_key_values(agent.history, 'action', 'wait') >= 2:
+                break
+
+            if response.done:
+                is_done = True
+                break
+        agent_successful = is_done and task.is_successful(env) == 1
 
         # 任务跑完后，保存执行历史
         save_task_history(agent, str(row['id']), task.goal, agent_successful)
@@ -1245,7 +1239,7 @@ def save_task_history(agent, task_id: str, task_goal: str, success: bool, output
                 # if exist_retry_step:
                 #     export['trajectory_type'] = 1
                 # else:
-                    export['trajectory_type'] = 1
+                    export['trajectory_type'] = 0
 
         # 两张截图：before/after
         for key in ("before_screenshot", 'before_screenshot_mark'):

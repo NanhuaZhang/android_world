@@ -575,6 +575,47 @@ def _generate_random_recipe() -> sqlite_schema_utils.Recipe:
       'Try adding a pinch of your favorite spices for extra flavor.',
       'Feel free to substitute with ingredients you have on hand.',
       'Garnish with fresh herbs for a more vibrant taste.',
+      'Spread ghee on warm naan and sprinkle crushed cardamom for a fragrant twist.',
+      'Toast fenugreek seeds until aromatic and grind them into a curry powder.',
+      'Sprinkle amchur (dry mango powder) over grilled fish to add a tangy brightness.',
+      'Add a few drops of rose water to the syrup for a delicate floral finish.',
+      'Drizzle pomegranate molasses over roasted vegetables for sweet-tart depth.',
+      'Tuck kaffir lime leaves into a coconut soup for an uplifting citrus note.',
+      'Slice galangal thinly and simmer it in broth to give an earthy spice.',
+      'Bruise lemongrass stalks and steep them in hot stock for a clean lemon aroma.',
+      'Use furikake to season steamed rice and add an umami crunch.',
+      'Roast black garlic and spread it on toast for a sweet, caramelized umami hit.',
+      'Sprinkle hemp seeds over salads for a nutty texture and extra protein.',
+      'Mix chia seeds into yogurt and let it sit for a creamy, thick parfait.',
+      'Blend açai berry into a smoothie bowl and top with granola and fruit.',
+      'Stir maca powder into your morning latte for an earthy, malty boost.',
+      'Add a teaspoon of spirulina to a green smoothie for a vibrant nutrient kick.',
+      'Replace wheat with cassava flour in gluten-free baking for a tender crumb.',
+      'Use arrowroot powder to thicken a glossy fruit coulis without altering flavor.',
+      'Toss dried seaweed flakes into noodle dishes for seaside umami.',
+      'Serve escargot in garlic butter for a classic French appetizer.',
+      'Grill venison medallions and finish with a balsamic reduction for rich flavor.',
+      'Fry quail eggs sunny-side up and serve on crostini for an elegant snack.',
+      'Sear chicken in duck fat to achieve an irresistibly crisp skin.',
+      'Saute morel mushrooms in butter to highlight their nutty, woodsy character.',
+      'Use chanterelle mushrooms in a cream sauce to complement pasta or polenta.',
+      'Shave black truffle over scrambled eggs for an indulgent, aromatic touch.',
+      'Garnish desserts with edible flowers to add color and a subtle floral note.',
+      'Roast salsify until caramelized and serve as an unexpected root vegetable side.',
+      'Braised rutabaga becomes sweet and tender when cooked low and slow.',
+      'Make a rustic puree of celeriac with cream and butter as a silky side dish.',
+      'Spoon fingers lime pearls over seafood to add bright, popping citrus bursts.',
+      'Toss cooked noodles with a Thai peanut sauce.',
+      'Fill pita pockets with lettuce, cucumber, tomato, feta, olives,'
+      ' and Greek dressing.',
+      'Bake salmon fillets and serve with a sauce made from Greek yogurt,'
+      ' dill, lemon juice, and garlic.',
+      'Mix shredded cooked chicken with BBQ sauce. Place on tortillas'
+      ' with cheese, fold and cook until crispy.',
+      'Toss chopped romaine lettuce with Caesar dressing, grilled chicken'
+      ' strips, and Parmesan cheese. Wrap in a large tortilla.',
+      'Cook fettuccine pasta, toss with Alfredo sauce and grilled chicken'
+      ' strips. Serve with a sprinkle of Parmesan cheese.'
   ]
   ingredient_descriptors = [
       'see directions',

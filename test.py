@@ -14,7 +14,7 @@ def getKeys():
     data = getJson()
 
     # 获取所有值为 2 的 key
-    keys_with_value_2 = [key for key, value in data.items() if value == 2]
+    keys_with_value_2 = [key for key, value in data.items() if value == 0]
 
     keys_with_value_2 = list(map(int, keys_with_value_2))
 
