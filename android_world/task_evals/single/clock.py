@@ -125,7 +125,7 @@ class _ClockEval(task_eval.TaskEval):
 class ClockTimerEntry(_ClockEval):
   """Task for checking if timer is set (but not started)."""
 
-  complexity = 1
+  complexity = 3
   schema = {
       "type": "object",
       "properties": {
