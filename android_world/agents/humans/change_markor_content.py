@@ -234,9 +234,9 @@ class ChangeMarkorContent(base_agent.EnvironmentInteractingAgent):
     self.additional_guidelines = task_guidelines
 
   def steps(self, file_count: int, file_name: str, update_content: str, update_name: str):
-      element_index = 15
+      element_index = 14
       if file_count == 1:
-        element_index = 13
+        element_index = 12
       reason = [
           "To begin the task of updating and renaming the file in Markor, the first step is to open the Markor app. Since the current screen is the home screen, using the `open_app` action with app_name \"Markor\" is the appropriate next step.",
           f"To start updating and renaming the file \"{file_name}\", the first step is to open it. this element corresponds to this file, and clicking on it will allow access to its content for editing.",
@@ -262,11 +262,11 @@ class ChangeMarkorContent(base_agent.EnvironmentInteractingAgent):
           f"""Reason: {reason[2]}
             Action: {{"action_type": "long_press", "index": 8}}""",
           f"""Reason: {reason[3]}
-            Action: {{"action_type": "click", "index": 18}}""",
+            Action: {{"action_type": "click", "index": 19}}""",
           f"""Reason: {reason[4]}
-            Action: {{"action_type": "input_text", "text": "{update_content}", "index": 8}}""",
+            Action: {{"action_type": "input_text", "text": "{update_content}", "index": 9}}""",
           f"""Reason: {reason[5]}
-            Action: {{"action_type": "click", "index": 4}}""",
+            Action: {{"action_type": "click", "index": 6}}""",
           f"""Reason: {reason[6]}
             Action: {{"action_type": "navigate_back" }}""",
           f"""Reason: {reason[7]}
@@ -274,18 +274,18 @@ class ChangeMarkorContent(base_agent.EnvironmentInteractingAgent):
           f"""Reason: {reason[8]}
             Action: {{"action_type": "long_press", "index": {element_index}}}""",
           f"""Reason: {reason[9]}
-            Action: {{"action_type": "click", "index": 3 }}""",
+            Action: {{"action_type": "click", "index": 5 }}""",
           f"""Reason: {reason[10]}
             Action: {{"action_type": "long_press", "index": 2 }}""",
           f"""Reason: {reason[11]}
-            Action: {{"action_type": "input_text", "text": "{update_content}", index: 2}}""",
+            Action: {{"action_type": "input_text", "text": "{update_name}", "index": 2}}""",
           f"""Reason: {reason[12]}
             Action: {{"action_type": "click", "index": 4}}""",
           f"""Reason: {reason[13]}
             Action: {{"action_type": "status", "goal_status": "complete"}}""",
       ]
 
-      for step in steps:
+      for index,step in enumerate(steps):
         self.step(step)
 
 
