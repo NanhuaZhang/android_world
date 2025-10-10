@@ -107,7 +107,11 @@ class JSONAction:
   index: Optional[str | int] = None
   x: Optional[int] = None
   y: Optional[int] = None
+  click_x: Optional[int] = None
+  click_y: Optional[int] = None
   text: Optional[str] = None
+  element_text: Optional[str] = None
+  element_resource_name: Optional[str] = None
   direction: Optional[str] = None
   goal_status: Optional[str] = None
   app_name: Optional[str] = None
@@ -127,6 +131,14 @@ class JSONAction:
       raise ValueError(f'Invalid scroll direction: {self.direction}')
     if self.text is not None and not isinstance(self.text, str):
       self.text = str(self.text)
+    if self.element_text is not None and not isinstance(self.element_text, str):
+      self.element_text = str(self.element_text)
+    if self.element_resource_name is not None and not isinstance(self.element_resource_name, str):
+      self.element_resource_name = str(self.element_resource_name)
+    if self.click_x is not None and not isinstance(self.click_x, int):
+      self.click_x = int(self.click_x)
+    if self.click_y is not None and not isinstance(self.click_y, int):
+      self.click_y = int(self.click_y)
     if self.keycode is not None and not self.keycode.startswith('KEYCODE_'):
       raise ValueError(f'Invalid keycode: {self.keycode}')
 

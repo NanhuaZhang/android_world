@@ -815,6 +815,7 @@ class MarkorAddNoteHeader(Markor):
         device_constants.MARKOR_DATA,
         env.controller,
         _NOTE_TITLES,
+        3
     )
 
     if not file_utils.check_file_or_folder_exists(

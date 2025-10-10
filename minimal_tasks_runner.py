@@ -30,7 +30,7 @@ import re
 from typing import Type
 
 from android_world.agents.humans.draw_pro_agent import DrawPro
-from android_world.agents.humans.change_markor_content import ChangeMarkorContent
+from android_world.agents.humans.change_markor import ChangeMarkorContent, MarkorAddNoteHeader, MarkorMergeNotes
 from android_world.task_evals.single import vlc
 from android_world.utils import datetime_utils
 import pandas as pd
@@ -1116,7 +1116,19 @@ def _main() -> None:
         #     file_count = 1
         # agent = ChangeMarkorContent(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
         # agent.steps(file_count, params['original_name'], params['updated_content'], params['new_name'])
-        # agent_successful = True
+
+        # agent = MarkorAddNoteHeader(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        # agent.steps(params['original_name'], params['header'], params['new_name'])
+        
+        agent = MarkorMergeNotes(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        agent.steps(
+          params['file1_name'],
+          params['file2_name'],
+          params['file3_name'],
+          params['new_file_name']
+        )
+        
+        agent_successful = True
 
         print('Goal: ' + str(task.goal))
         is_done = False
@@ -1216,6 +1228,7 @@ def save_task_history(agent, task_id: str, task_goal: str, success: bool, output
             "step_id": idx,
             "action": step.get("action"),
             "think": clean_element_number_text(reason),
+            # "think": reason,
             # "summary": step.get("summary"),
             "action_inputs": {
                 "start_coords": step.get("start_coords"),

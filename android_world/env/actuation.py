@@ -47,7 +47,11 @@ def execute_adb_action(
     idx = action.index
     x = action.x
     y = action.y
-    if idx is not None:
+    if action.click_x is not None and action.click_y is not None and action.action_type == 'click':
+      x = int(action.click_x)
+      y = int(action.click_y)
+      adb_utils.tap_screen(x, y, env)
+    elif idx is not None:
       if idx < 0 or idx >= len(screen_elements):
         raise ValueError(
             f'Invalid element index: {idx}, must be between 0 and'
@@ -93,13 +97,16 @@ def execute_adb_action(
           element = screen_elements[action.index]
 
           # markor: add text to header 时放开
-          # if element.resource_name == 'net.gsantner.markor:id/document__fragment__edit__highlighting_editor':
+          # if element.resource_name is not None and element.resource_name == 'net.gsantner.markor:id/document__fragment__edit__highlighting_editor':
           #   click_x, click_y = 20, 310
           #   # 固定为两个换行符
           #   text = action.text.rstrip('\n')
           #   text = text + '\n\n'
+          #   step_data['input_text_rename'] = True
         # First focus on enter text UI element.
-        if '/new_name' not in element.resource_name and '/save_image_filename' not in element.resource_name and step_data['input_text_rename'] != True:
+        if element.resource_name is not None and ('/new_name' in element.resource_name or '/save_image_filename' in element.resource_name):
+          step_data['input_text_rename'] = True
+        if not step_data['input_text_rename']:
           click_action = copy.deepcopy(action)
           click_action.action_type = 'click'
           if click_x is not None and click_y is not None:
@@ -108,8 +115,6 @@ def execute_adb_action(
             click_action.index = None
           execute_adb_action(click_action, screen_elements, screen_size, env, status)
           time.sleep(1.0)
-
-
 
           state = status.get_state(wait_to_stabilize=False)
           step_data['action'] = 'click'
