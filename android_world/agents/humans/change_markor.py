@@ -213,7 +213,7 @@ def get_target_element(
     action_index = None
     if converted_action.element_text is not None:
         for index, element in enumerate(ui_elements):
-            if element.text is not None and element.text.lower() == converted_action.element_text.lower():
+            if element.text is not None and element.text.lower() == converted_action.element_text.lower() and (converted_action.element_resource_name is None or element.resource_name == converted_action.element_resource_name):
                 target_element = element
                 action_index = index
                 break
@@ -807,8 +807,8 @@ class MarkorMergeNotes(base_agent.EnvironmentInteractingAgent):
       reason = [
           "To start updating the Markor note, I need to open the Markor app. Since the current screen is the home screen, using the `open_app` action with app_name \"Markor\" is the first step to access the app where the note is located.",
           "To create a new empty note, the first step is to initiate the creation process. The UI element with index 1, described as \"Create a new file or folder\", is the appropriate element to click to start creating a new note in Markor.",
+          "Click the \"Title\" input box to activate the editing state",
           f"To create a new note named \"{new_file_name}\", we need to input the name into the \"Title\" editable text field. this element is the correct target for this input, so using the `input_text` action here will set the note's name appropriately.",
-          "",
           f"To finalize the creation of the new note named \"{new_file_name}\", we need to confirm the action by clicking the \"OK\" button, which is this element. This will save the new note and allow us to proceed with the next steps.",
           f"After creating the note \"{new_file_name}\", the next step as per the task is to return to the notes list screen. Using the `navigate_back` action will take us back to the previous screen, which should be the notes list screen in Markor.",
           f"Currently, we are still in the edit screen of \"{new_file_name}\". we need to copy the content of \"{file_name1}\", so we need to navigate back to the notes list screen. Using the `navigate_back` action will take us back to the previous screen, which should be the notes list screen in Markor.",
@@ -1151,5 +1151,619 @@ class MarkorMergeNotes(base_agent.EnvironmentInteractingAgent):
 
     return base_agent.AgentInteractionResult(
         False,
+        step_data,
+    )
+
+
+class MarkorCreateNoteFromClipboard(base_agent.EnvironmentInteractingAgent):
+  """Text only autonomous agent for Android."""
+
+  def __init__(
+      self,
+      env: interface.AsyncEnv,
+      llm: infer.LlmWrapper,
+      name: str = 'T3A',
+  ):
+    """Initializes a RandomAgent.
+
+    Args:
+      env: The environment.
+      llm: The text only LLM.
+      name: The agent name.
+    """
+    super().__init__(env, name)
+    self.llm = llm
+    self.history = []
+    self.additional_guidelines = None
+
+  def reset(self, go_home_on_reset: bool = False):
+    super().reset(go_home_on_reset)
+    self.env.hide_automation_ui()
+    self.history = []
+
+  def set_task_guidelines(self, task_guidelines: list[str]) -> None:
+    self.additional_guidelines = task_guidelines
+
+  def steps(self, filename: str, text: str):
+      file_name, type = filename.split('.')
+ 
+      if type == 'md':
+        type_label = 'MarkDown'
+        index = 0
+      else:
+        type_label = 'Plain Text'
+        index = 1
+
+      reason = [
+        "To start creating a new note in Markor, the first step is to open the Markor app. Since the current screen is the home screen and there's no visible Markor app icon, using the `open_app` action with app_name \"Markor\" is the correct approach to launch the app.",
+        "To create a new note, the first step after opening Markor is to initiate the creation process. The UI element with index 1, described as \"Create a new file or folder\", is the appropriate element to click to start creating a new note.",
+        "Click the \"Title\" input box to activate the editing state",
+        f'To set the correct name for the new note, I need to input "{file_name}" into the editable text field for the name, which is currently visible and ready for input.',
+        f"To change the note type to {type_label}, I need to interact with the \"Type\" spinner. Clicking on this spinner will likely open a dropdown or selection menu where \"{type_label}\" can be chosen, which aligns with the task's requirement.",
+        f"To set the note type to {type_label} as required, we need to select the \"{type_label}\" option from the type selection menu. UI element 1 corresponds to \"{type_label}\", which is visible and clickable, so clicking on it will achieve this.",
+        'To proceed with creating the new note, we need to confirm the entered details (name and type) by clicking the "OK" button. This action will finalize the note creation and allow us to input the content next.',
+        f'To add the required text to the note, I need to input "{text}" into the editable text field, which is visible and ready for text entry.',
+        f"To paste the copied content into the \"{file_name}\" note, we need to long - press on the editable text field  to bring up the text selection menu with the \"Paste\" option. This is the appropriate action to insert the copied text into the note.",
+        f"To paste the copied content into the \"{file_name}\" note, we need to click on the \"Paste\" UI element which is visible and clickable on the current screen, as it appears in the text selection menu after long - pressing the editable text field.",
+        'The note has been created with the correct name, type, and content. To finalize the task, saving the note is necessary. Click "More" to find the "Save" button.',
+        'The "Save" button may not be here. Go back to find the "Save" button.',
+        'The "Save" button is visible and clickable, so clicking it will complete the task.',
+        'All required steps to create the note (setting name, type, content, and saving) have been successfully executed. The current screen confirms the note is open with the correct content, and no further actions are needed. Thus, the task can be marked as complete.',
+      ]
+
+      steps = [
+          f"""Reason: {reason[0]}
+            Action: {{"action_type": "open_app", "app_name": "Markor"}}""",
+          f"""Reason: {reason[1]}
+            Action: {{"action_type": "click", "index": 1, "element_text": "Create a new file or folder" }}""",
+          f"""Reason: {reason[2]}
+            Action: {{"action_type": "click", "index": 10, "element_text": "Title" }}""",
+          f"""Reason: {reason[3]}
+            Action: {{"action_type": "input_text", "text": "{file_name}", "index": 1, "element_text": "Title" }}""",
+          f"""Reason: {reason[4]}
+            Action: {{"action_type": "click", "index": 4, "element_resource_name": "net.gsantner.markor:id/new_file_dialog__type" }}""",
+          f"""Reason: {reason[5]}
+            Action: {{"action_type": "click", "index": {index}, "element_text": "{type_label}", "element_resource_name": "android:id/text1" }}""",
+          f"""Reason: {reason[6]}
+            Action: {{"action_type": "click", "index": 11, "element_text": "OK" }}""",
+          f"""Reason: {reason[7]}
+            Action: {{"action_type": "click", "index": 8, "element_resource_name": "net.gsantner.markor:id/document__fragment__edit__highlighting_editor" }}""",
+          f"""Reason: {reason[8]}
+            Action: {{"action_type": "long_press", "index": 10, "element_resource_name": "net.gsantner.markor:id/document__fragment__edit__highlighting_editor" }}""",
+          f"""Reason: {reason[9]}
+            Action: {{"action_type": "click", "index": 10, "element_text": "Paste" }}""",
+          f"""Reason: {reason[10]}
+            Action: {{"action_type": "click", "index": 6, "element_text": "More"}}""",
+          f"""Reason: {reason[11]}
+            Action: {{"action_type": "navigate_back"}}""",
+          f"""Reason: {reason[12]}
+            Action: {{"action_type": "click", "index": 4, "element_text": "Save"}}""",
+          f"""Reason: {reason[13]}
+            Action: {{"action_type": "status", "goal_status": "complete"}}""",
+      ]
+
+      for index,step in enumerate(steps):
+        self.step(step, index)
+
+
+  def step(self, action_output:str, index:int) -> base_agent.AgentInteractionResult:
+    step_data = {
+        'before_screenshot': None,
+        'after_screenshot': None,
+        'before_element_list': None,
+        'after_element_list': None,
+        'action_prompt': None,
+        'action_output': None,
+        'action_raw_response': None,
+        'summary_prompt': None,
+        'summary': None,
+        'summary_raw_response': None,
+    }
+    print('----------step ' + str(index + 1))
+    time.sleep(1.0)
+    state = self.get_post_transition_state()
+    time.sleep(1.0)
+    logical_screen_size = self.env.logical_screen_size
+    ui_elements = state.ui_elements
+
+
+    step_data['action_output'] = action_output
+    time.sleep(1.0)
+    reason, action = m3a_utils.parse_reason_action_output(action_output)
+    time.sleep(1.0)
+    # If the output is not in the right format, add it to step summary which
+    # will be passed to next step and return.
+    print('Action: ' + action)
+    print('Reason: ' + reason)
+
+    try:
+      converted_action = json_action.JSONAction(
+          **agent_utils.extract_json(action),
+      )
+    except Exception as e:  # pylint: disable=broad-exception-caught
+      print('Failed to convert the output to a valid action.')
+      print(str(e))
+      step_data['summary'] = (
+          'Can not parse the output to a valid action. Please make sure to pick'
+          ' the action from the list with the correct json format!'
+      )
+      self.history.append(step_data)
+
+      return base_agent.AgentInteractionResult(
+          False,
+          step_data,
+      )
+      
+    if converted_action.action_type == 'navigate_back':
+      isCreateButtonExist = False
+      for element in ui_elements:
+        if element.content_description == 'Create a new file or folder':
+          isCreateButtonExist = True
+          break
+      if isCreateButtonExist:
+        return
+    
+    if index == 41:
+      isCreateButtonExist = False
+      for element in ui_elements:
+        if element.content_description == 'Create a new file or folder':
+          isCreateButtonExist = True
+          break
+      if not isCreateButtonExist:
+        time.sleep(2.0)
+        state = self.get_post_transition_state()
+        time.sleep(1.0)
+        logical_screen_size = self.env.logical_screen_size
+        ui_elements = state.ui_elements
+        
+  
+    # before_element_list = _generate_ui_elements_description_list_full(
+    #     ui_elements,
+    #     logical_screen_size,
+    # )
+    # Only save the screenshot for result visualization.
+    step_data['before_screenshot'] = state.pixels.copy()
+    step_data['before_screenshot_mark'] = state.pixels.copy()
+    step_data['before_element_list'] = ui_elements
+ 
+
+    step_data['direction'] = converted_action.direction
+    step_data['keycode'] = converted_action.keycode
+    step_data['content'] = converted_action.text
+    step_data['action'] = converted_action.action_type
+
+    if converted_action.action_type in ['click', 'long_press', 'input_text']:
+      if converted_action.index is not None and converted_action.index >= len(
+          ui_elements
+      ):
+        print('Index out of range.')
+        step_data['summary'] = (
+            'The parameter index is out of range. Remember the index must be in'
+            ' the UI element list!'
+        )
+        self.history.append(step_data)
+        return base_agent.AgentInteractionResult(False, step_data)
+      else:
+        target_element = ui_elements[converted_action.index]
+        
+        _element,_index = get_target_element(converted_action, ui_elements)
+        if _element is not None and _index is not None:
+          target_element = _element
+          converted_action.index = _index 
+        
+        center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
+        click_point = (center_x, center_y)
+
+        if converted_action.click_x is not None and converted_action.click_y is not None:
+          click_point = (converted_action.click_x, converted_action.click_y)
+
+        # 记录点击前坐标
+        if converted_action.action_type == 'input_text':
+          click_point = None
+
+        step_data['start_coords'] = click_point
+        step_data['end_coords'] = click_point
+
+        # Add mark for the target ui element, just used for visualization.ƒ
+        m3a_utils.add_ui_element_mark(
+            step_data['before_screenshot_mark'],
+            ui_elements[converted_action.index],
+            converted_action.index,
+            logical_screen_size,
+            adb_utils.get_physical_frame_boundary(self.env.controller),
+            adb_utils.get_orientation(self.env.controller),
+            click_point,
+        )
+
+    if converted_action.action_type == 'open_app':
+        step_data['app_name'] = converted_action.app_name
+
+    if converted_action.action_type == 'status':
+      if converted_action.goal_status == 'infeasible':
+        print('Agent stopped since it thinks mission impossible.')
+      step_data['summary'] = 'Agent thinks the request has been completed.'
+      self.history.append(step_data)
+      step_data['status'] = converted_action.goal_status
+      return base_agent.AgentInteractionResult(
+          True,
+          step_data,
+      )
+
+    if converted_action.action_type == 'answer':
+      print('Agent answered with: ' + converted_action.text)
+
+    try:
+      result = self.env.execute_action(converted_action)
+      if converted_action.action_type == 'scroll':
+          step_data['start_coords'] = (result[0],result[1])
+          step_data['end_coords'] = (result[2],result[3])
+
+      if converted_action.action_type == 'input_text':
+        if step_data is not None and result is not None and not result['input_text_rename']:
+          click_step = result
+          click_step['action_output'] = step_data['action_output']
+          before_screenshot = step_data['before_screenshot']
+          step_data['before_screenshot'] = click_step['before_screenshot']
+
+          click_step['before_screenshot'] = before_screenshot
+          click_step['before_screenshot_mark'] = step_data['before_screenshot_mark']
+
+          step_data['before_screenshot_mark'] = step_data['before_screenshot']
+          step_data['action_output'] = f'Reason: Input {converted_action.text}\n Action:xxx'
+          self.history.append(click_step)
+
+    except Exception as e:  # pylint: disable=broad-exception-caught
+      print(
+          'Some error happened executing the action ',
+          converted_action.action_type,
+      )
+      print(str(e))
+      step_data['summary'] = (
+          'Some error happened executing the action '
+          + converted_action.action_type
+      )
+      self.history.append(step_data)
+
+      return base_agent.AgentInteractionResult(
+          False,
+          step_data,
+      )
+
+    time.sleep(2.0)
+    state = self.get_post_transition_state()
+    ui_elements = state.ui_elements
+
+    # Save screenshot only for result visualization.
+    step_data['after_screenshot'] = state.pixels.copy()
+    step_data['after_element_list'] = ui_elements
+    time.sleep(2.0)
+
+    self.history.append(step_data)
+
+    return base_agent.AgentInteractionResult(
+        False,
+        step_data,
+    )
+
+
+class MarkorCreateNoteAndSms(base_agent.EnvironmentInteractingAgent):
+  """Text only autonomous agent for Android."""
+
+  def __init__(
+      self,
+      env: interface.AsyncEnv,
+      llm: infer.LlmWrapper,
+      name: str = 'T3A',
+  ):
+    """Initializes a RandomAgent.
+
+    Args:
+      env: The environment.
+      llm: The text only LLM.
+      name: The agent name.
+    """
+    super().__init__(env, name)
+    self.llm = llm
+    self.history = []
+    self.additional_guidelines = None
+
+  def reset(self, go_home_on_reset: bool = False):
+    super().reset(go_home_on_reset)
+    self.env.hide_automation_ui()
+    self.history = []
+
+  def set_task_guidelines(self, task_guidelines: list[str]) -> None:
+    self.additional_guidelines = task_guidelines
+
+  def steps(self, filename: str, text: str, phone: str):
+      file_name, type = filename.split('.')
+ 
+      if type == 'md':
+        type_label = 'MarkDown'
+        index = 0
+      else:
+        type_label = 'Plain Text'
+        index = 1
+
+      reason = [
+        "To start creating a new note in Markor, the first step is to open the Markor app. Since we're on the home screen, using the `open_app` action with app_name \"Markor\" is the appropriate next step.",
+        "To create a new note, the next logical step is to interact with the \"Create a new file or folder\" button, which is visible and clickable. This will initiate the process of creating a new note.",
+        "Click the \"Title\" input box to activate the editing state",
+        f'To set the correct name for the new note, I need to input "{file_name}" into the editable text field for the name, which is currently visible and ready for input.',
+        f"To change the note type to {type_label}, I need to interact with the \"Type\" spinner. Clicking on this spinner will likely open a dropdown or selection menu where \"{type_label}\" can be chosen, which aligns with the task's requirement.",
+        f"To set the note type to {type_label} as required, we need to select the \"{type_label}\" option from the dropdown. this element corresponds to \"{type_label}\", so clicking on it will achieve this.",
+        "To proceed with creating the new note, we need to confirm the entered details (name and type) by clicking the \"OK\" button. This action will finalize the note creation and allow us to input the content next.",
+        "To add the required text to the note, I need to switch the note to edit mode. Now click on the note to trigger the edit.",
+        f'To add the required text to the note, I need to input \"{text}\" into the editable text field, which is visible and ready for text entry.',
+        "The note has been created with the correct name, type, and content. We need to save the note, click \"More\" to find the \"Save\" button.",
+        "The \"Save\" button may not be here. Go back to find the \"Save\" button.",
+        "The \"Save\" button is visible and clickable, so clicking it will complete creating the note.",
+        "To share the note content, I need to access the sharing options. The \"More options\" menu is likely to contain the share functionality, so clicking on it is the next logical step.",
+        "To proceed with sharing the note's content, I need to select the \"Share\" option from the opened menu. This will allow access to sharing methods, including SMS, which is required for the task. this element corresponds to \"Share\" and is visible, so clicking it is the logical next step.",
+        "To share the note content, we need to select the \"Plain Text\" option from the current submenu. This aligns with the task's requirement to share the entire content by Plain Text, which will likely lead to the next step of choosing the SMS app.",
+        "To share the note content via SMS using Simple SMS Messenger, we need to select the \"SMS Messenger\" app from the sharing options. this element corresponds to \"SMS Messenger\", so clicking on it will allow us to proceed with composing the SMS to the specified phone number.",
+        f"To share the note via SMS, we need to input the recipient's phone number {phone} into the \"Add Contact or Number…\" editable text field. Using the `input_text` action directly on this field will efficiently enter the number, progressing toward sending the SMS.",
+        f"Input {phone}",
+        "To proceed with sending the SMS, we need to confirm the entered phone number. this element is the \"confirm\" button (ImageView) next to the recipient number field, which is visible and clickable. Clicking it will likely transition to the conversation screen where the message can be sent.",
+        "To complete the task of sharing the note content via SMS, the next step is to send the message. this element is the \"SMS\" send button, which is clickable and visible, so clicking it will send the message to the specified phone number.",
+        "All required steps to create the note, populate it, and share via SMS to the specified number have been successfully executed. The message is visible in the chat, confirming completion.",
+      ]
+
+      steps = [
+          f"""Reason: {reason[0]}
+            Action: {{"action_type": "open_app", "app_name": "Markor"}}""",
+          f"""Reason: {reason[1]}
+            Action: {{"action_type": "click", "index": 1, "element_text": "Create a new file or folder" }}""",
+          f"""Reason: {reason[2]}
+            Action: {{"action_type": "click", "index": 10, "element_text": "Title" }}""",
+          f"""Reason: {reason[3]}
+            Action: {{"action_type": "input_text", "text": "{file_name}", "index": 1, "element_text": "Title" }}""",
+          f"""Reason: {reason[4]}
+            Action: {{"action_type": "click", "index": 4, "element_resource_name": "net.gsantner.markor:id/new_file_dialog__type" }}""",
+          f"""Reason: {reason[5]}
+            Action: {{"action_type": "click", "index": {index}, "element_text": "{type_label}", "element_resource_name": "android:id/text1" }}""",
+          f"""Reason: {reason[6]}
+            Action: {{"action_type": "click", "index": 11, "element_text": "OK" }}""",
+          f"""Reason: {reason[7]}
+            Action: {{"action_type": "click", "index": 8, "element_resource_name": "net.gsantner.markor:id/document__fragment__edit__highlighting_editor" }}""",
+          f"""Reason: {reason[8]}
+            Action: {{"action_type": "input_text", "text": "{text}", "index": 10, "element_resource_name": "net.gsantner.markor:id/document__fragment__edit__highlighting_editor" }}""",
+          f"""Reason: {reason[9]}
+            Action: {{"action_type": "click", "index": 6, "element_text": "More"}}""",
+          f"""Reason: {reason[10]}
+            Action: {{"action_type": "navigate_back"}}""",
+          f"""Reason: {reason[11]}
+            Action: {{"action_type": "click", "index": 4, "element_text": "Save"}}""",
+          f"""Reason: {reason[12]}
+            Action: {{"action_type": "click", "index": 6, "element_text": "More"}}""",
+          f"""Reason: {reason[13]}
+            Action: {{"action_type": "click", "index": 4, "element_text": "Share"}}""",
+          f"""Reason: {reason[14]}
+            Action: {{"action_type": "click", "index": 4, "element_text": "Plain Text"}}""",
+          f"""Reason: {reason[15]}
+            Action: {{"action_type": "click", "element_text": "SMS Messenger"}}""",
+          f"""Reason: {reason[16]}
+            Action: {{"action_type": "click", "element_text": "Add Contact or Number…"}}""",
+          f"""Reason: {reason[17]}
+            Action: {{"action_type": "input_text", "text": "{phone}", "index": 1, "element_text": "Add Contact or Number…"}}""",
+          f"""Reason: {reason[18]}
+            Action: {{"action_type": "click", "element_resource_name": "com.simplemobiletools.smsmessenger:id/new_conversation_confirm"}}""",
+          f"""Reason: {reason[19]}
+            Action: {{"action_type": "click", "element_text": "SMS"}}""",
+          f"""Reason: {reason[20]}
+            Action: {{"action_type": "status", "goal_status": "complete"}}""",
+      ]
+
+      for index,step in enumerate(steps):
+        self.step(step, index)
+
+  def step(self, action_output:str, index:int) -> base_agent.AgentInteractionResult:
+    step_data = {
+        'before_screenshot': None,
+        'after_screenshot': None,
+        'before_element_list': None,
+        'after_element_list': None,
+        'action_prompt': None,
+        'action_output': None,
+        'action_raw_response': None,
+        'summary_prompt': None,
+        'summary': None,
+        'summary_raw_response': None,
+    }
+    print('----------step ' + str(index + 1))
+    time.sleep(1.0)
+    state = self.get_post_transition_state()
+    time.sleep(1.0)
+    logical_screen_size = self.env.logical_screen_size
+    ui_elements = state.ui_elements
+
+
+    step_data['action_output'] = action_output
+    time.sleep(1.0)
+    reason, action = m3a_utils.parse_reason_action_output(action_output)
+    time.sleep(1.0)
+    # If the output is not in the right format, add it to step summary which
+    # will be passed to next step and return.
+    print('Action: ' + action)
+    print('Reason: ' + reason)
+
+    try:
+      converted_action = json_action.JSONAction(
+          **agent_utils.extract_json(action),
+      )
+    except Exception as e:  # pylint: disable=broad-exception-caught
+      print('Failed to convert the output to a valid action.')
+      print(str(e))
+      step_data['summary'] = (
+          'Can not parse the output to a valid action. Please make sure to pick'
+          ' the action from the list with the correct json format!'
+      )
+      self.history.append(step_data)
+
+      return base_agent.AgentInteractionResult(
+          False,
+          step_data,
+      )
+      
+    if converted_action.action_type == 'navigate_back':
+      isCreateButtonExist = False
+      for element in ui_elements:
+        if element.content_description == 'Create a new file or folder':
+          isCreateButtonExist = True
+          break
+      if isCreateButtonExist:
+        return
+    
+    if index == 41:
+      isCreateButtonExist = False
+      for element in ui_elements:
+        if element.content_description == 'Create a new file or folder':
+          isCreateButtonExist = True
+          break
+      if not isCreateButtonExist:
+        time.sleep(2.0)
+        state = self.get_post_transition_state()
+        time.sleep(1.0)
+        logical_screen_size = self.env.logical_screen_size
+        ui_elements = state.ui_elements
+        
+  
+    # before_element_list = _generate_ui_elements_description_list_full(
+    #     ui_elements,
+    #     logical_screen_size,
+    # )
+    # Only save the screenshot for result visualization.
+    step_data['before_screenshot'] = state.pixels.copy()
+    step_data['before_screenshot_mark'] = state.pixels.copy()
+    step_data['before_element_list'] = ui_elements
+ 
+
+    step_data['direction'] = converted_action.direction
+    step_data['keycode'] = converted_action.keycode
+    step_data['content'] = converted_action.text
+    step_data['action'] = converted_action.action_type
+
+    if converted_action.action_type in ['click', 'long_press', 'input_text']:
+      if converted_action.index is not None and converted_action.index >= len(
+          ui_elements
+      ):
+        print('Index out of range.')
+        step_data['summary'] = (
+            'The parameter index is out of range. Remember the index must be in'
+            ' the UI element list!'
+        )
+        self.history.append(step_data)
+        return base_agent.AgentInteractionResult(False, step_data)
+      else:
+        target_element = None
+        if converted_action.index is not None:
+          target_element = ui_elements[converted_action.index]
+        # if converted_action.element_text == 'SMS Messenger':
+        #   print(f'ui_elements>>>>>>>>>>>>>: {ui_elements}')
+        _element,_index = get_target_element(converted_action, ui_elements)
+        if _element is not None and _index is not None:
+          target_element = _element
+          converted_action.index = _index 
+
+        if target_element is None:
+          print('Target element not found.')
+          step_data['summary'] = (
+              'The target element is not found. Remember the index must be in'
+              ' the UI element list!'
+          )
+          self.history.append(step_data)
+          return base_agent.AgentInteractionResult(False, step_data)
+        
+        center_x, center_y = target_element.bbox_pixels.center  # (x1, y1, x2, y2)
+        click_point = (center_x, center_y)
+
+        if converted_action.click_x is not None and converted_action.click_y is not None:
+          click_point = (converted_action.click_x, converted_action.click_y)
+
+        # 记录点击前坐标
+        if converted_action.action_type == 'input_text':
+          click_point = None
+
+        step_data['start_coords'] = click_point
+        step_data['end_coords'] = click_point
+
+        # Add mark for the target ui element, just used for visualization.ƒ
+        m3a_utils.add_ui_element_mark(
+            step_data['before_screenshot_mark'],
+            ui_elements[converted_action.index],
+            converted_action.index,
+            logical_screen_size,
+            adb_utils.get_physical_frame_boundary(self.env.controller),
+            adb_utils.get_orientation(self.env.controller),
+            click_point,
+        )
+
+    if converted_action.action_type == 'open_app':
+        step_data['app_name'] = converted_action.app_name
+
+    if converted_action.action_type == 'status':
+      if converted_action.goal_status == 'infeasible':
+        print('Agent stopped since it thinks mission impossible.')
+      step_data['summary'] = 'Agent thinks the request has been completed.'
+      self.history.append(step_data)
+      step_data['status'] = converted_action.goal_status
+      return base_agent.AgentInteractionResult(
+          True,
+          step_data,
+      )
+
+    if converted_action.action_type == 'answer':
+      print('Agent answered with: ' + converted_action.text)
+
+    try:
+      result = self.env.execute_action(converted_action)
+      if converted_action.action_type == 'scroll':
+          step_data['start_coords'] = (result[0],result[1])
+          step_data['end_coords'] = (result[2],result[3])
+
+      if converted_action.action_type == 'input_text':
+        if step_data is not None and result is not None and not result['input_text_rename']:
+          click_step = result
+          click_step['action_output'] = step_data['action_output']
+          before_screenshot = step_data['before_screenshot']
+          step_data['before_screenshot'] = click_step['before_screenshot']
+
+          click_step['before_screenshot'] = before_screenshot
+          click_step['before_screenshot_mark'] = step_data['before_screenshot_mark']
+
+          step_data['before_screenshot_mark'] = step_data['before_screenshot']
+          step_data['action_output'] = f'Reason: Input {converted_action.text}\n Action:xxx'
+          self.history.append(click_step)
+
+    except Exception as e:  # pylint: disable=broad-exception-caught
+      print(
+          'Some error happened executing the action ',
+          converted_action.action_type,
+      )
+      print(str(e))
+      step_data['summary'] = (
+          'Some error happened executing the action '
+          + converted_action.action_type
+      )
+      self.history.append(step_data)
+
+      return base_agent.AgentInteractionResult(
+          False,
+          step_data,
+      )
+
+    time.sleep(2.0)
+    state = self.get_post_transition_state()
+    ui_elements = state.ui_elements
+
+    # Save screenshot only for result visualization.
+    step_data['after_screenshot'] = state.pixels.copy()
+    step_data['after_element_list'] = ui_elements
+    time.sleep(2.0)
+
+    self.history.append(step_data)
+
+    return base_agent.AgentInteractionResult(
+        True,
         step_data,
     )

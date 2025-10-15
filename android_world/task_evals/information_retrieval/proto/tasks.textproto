@@ -2499,7 +2499,7 @@ tasks {
 
 tasks {
   name: "SportsTrackerLongestDistanceActivity"
-  prompt: "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer."
+  prompt: "What was the longest distance covered in a {category} activity in the OpenTracks app this week? Assume the week starts from Monday. Express your answer as a single number in meters rounded to the nearest integer. Tips: 1. Need to filter the activity first. The first button at the bottom of the page takes you to the filter page. 2. Don't click the back button after filtering. 3. After filtering is complete, think about answering the question immediately and do not do anything else."
   complexity: 2
   relevant_state {
     state {

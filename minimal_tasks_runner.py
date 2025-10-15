@@ -30,7 +30,14 @@ import re
 from typing import Type
 
 from android_world.agents.humans.draw_pro_agent import DrawPro
-from android_world.agents.humans.change_markor import ChangeMarkorContent, MarkorAddNoteHeader, MarkorMergeNotes
+from android_world.agents.humans.change_markor import (
+    ChangeMarkorContent,
+    MarkorAddNoteHeader,
+    MarkorMergeNotes,
+    MarkorCreateNoteFromClipboard,
+    MarkorCreateNoteAndSms
+)
+from android_world.agents.humans.gallery import SaveCopyOfReceiptTaskEval
 from android_world.task_evals.single import vlc
 from android_world.utils import datetime_utils
 import pandas as pd
@@ -543,25 +550,7 @@ def read_csv():
     df = pd.read_csv('output.csv')  # 替换为你的文件
     return df
 
-retry_task = [
-576,
-708,
-1262,
-1551,
-2157,
-2209,
-2469,
-2880,
-3433,
-3533,
-3634,
-3735,
-3939,
-4093,
-4395,
-4741,
-5032,
-5129]
+retry_task = []
 
 complete_task = []
 def _main() -> None:
@@ -1031,28 +1020,28 @@ def _main() -> None:
         #             'noise_files2': [generate_file_name() for _ in range(2)],
         #         }
         #
-        # if task_value == 'MarkorMergeNotes':
-        #   options = extract_from_template(
-        #     (
-        #         "Merge the contents of Markor notes {file1_name}, {file2_name} and"
-        #         " {file3_name} (in the same order) into a new Markor note named"
-        #         " {new_file_name} and save it. Add a new line between the content of each"
-        #         " note."
-        #     ),
-        #     row['instruction']
-        #   )
-        #   if options is not None:
-        #     file1_name, file2_name, file3_name, new_file_name = options
-        #     params = {
-        #       'file1_name': file1_name,
-        #       'file2_name': file2_name,
-        #       'file3_name': file3_name,
-        #       'new_file_name': new_file_name,
-        #       "file1_content": user_data_generation.generate_random_string(20),
-        #       "file2_content": user_data_generation.generate_random_string(20),
-        #       "file3_content": user_data_generation.generate_random_string(20),
-        #     }
-        #
+        if task_value == 'MarkorMergeNotes':
+          options = extract_from_template(
+            (
+                "Merge the contents of Markor notes {file1_name}, {file2_name} and"
+                " {file3_name} (in the same order) into a new Markor note named"
+                " {new_file_name} and save it. Add a new line between the content of each"
+                " note."
+            ),
+            row['instruction']
+          )
+          if options is not None:
+            file1_name, file2_name, file3_name, new_file_name = options
+            params = {
+              'file1_name': file1_name,
+              'file2_name': file2_name,
+              'file3_name': file3_name,
+              'new_file_name': new_file_name,
+              "file1_content": user_data_generation.generate_random_string(20),
+              "file2_content": user_data_generation.generate_random_string(20),
+              "file3_content": user_data_generation.generate_random_string(20),
+            }
+        
         # if task_value == 'SimpleCalendarDeleteOneEvent':
         #     year, month, day, hour, event_title = extract_from_template(
         #         (
@@ -1097,6 +1086,45 @@ def _main() -> None:
         # if task_value == 'ExpenseAddMultipleFromMarkor':
         #   params = task_type.generate_random_params()
 
+        if task_value == 'SaveCopyOfReceiptTaskEval':
+          options = extract_from_template(
+            (
+              "In Simple Gallery Pro, copy {file_name} in DCIM and save a copy with the"
+              " same name in Download"
+            ),
+            row['instruction']
+          )
+          if options is not None:
+            file_name = list(options)[0]
+            receipt_image, _ = receipt_generator.create_receipt()
+            params = {
+              "receipt_image": receipt_image,
+              'file_name': file_name,
+            }
+
+        if task_value == 'MarkorCreateNoteFromClipboard':
+            file_name= extract_from_template(
+                  "Create a note in Markor named {file_name}. Perform a paste operation in the note and save the note.",
+                row['instruction'])
+            file_name = list(file_name)[0]
+            if file_name is not None :
+                params = {
+                    'file_name': file_name,
+                    'file_content':user_data_generation.generate_random_string(10)
+                }
+
+        if task_value == 'MarkorCreateNoteAndSms':
+            file_name,text,number = extract_from_template(
+                "Create a new note in Markor named {file_name} with the following text:{text}. Share the entire content of the note with the phone number {number} via SMS using Simple SMS Messenger",
+                row['instruction'])
+            if file_name is not None and text is not None and number is not None:
+                print(f"text: {text},file_name:{file_name},number:{number}")
+                params = {
+                    'file_name': file_name,
+                    'text': text,
+                    'number': number
+                }
+
         if params is None:
             continue
 
@@ -1120,27 +1148,36 @@ def _main() -> None:
         # agent = MarkorAddNoteHeader(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
         # agent.steps(params['original_name'], params['header'], params['new_name'])
         
-        agent = MarkorMergeNotes(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
-        agent.steps(
-          params['file1_name'],
-          params['file2_name'],
-          params['file3_name'],
-          params['new_file_name']
-        )
+        # agent = MarkorMergeNotes(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        # agent.steps(
+        #   params['file1_name'],
+        #   params['file2_name'],
+        #   params['file3_name'],
+        #   params['new_file_name']
+        # )
+
+        # agent = MarkorCreateNoteFromClipboard(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        # agent.steps(params['file_name'], params['file_content'])
+
+        agent = MarkorCreateNoteAndSms(env,infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        agent.steps(params['file_name'], params['text'], params['number'])
         
+        # agent = SaveCopyOfReceiptTaskEval(env, infer.DoubaoWrapper('doubao-1-5-ui-tars-250428'))
+        # agent.steps(params['file_name'])
+
         agent_successful = True
 
         print('Goal: ' + str(task.goal))
-        is_done = False
-        for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
-            response = agent.step(task.goal)
-            if count_key_values(agent.history, 'action', 'wait') >= 2:
-                break
+        # is_done = False
+        # for _ in range(min(int(task.complexity * 10), _MAX_STEP_COUNT.value)):
+        #     response = agent.step(task.goal)
+        #     if count_key_values(agent.history, 'action', 'wait') >= 2:
+        #         break
 
-            if response.done:
-                is_done = True
-                break
-        agent_successful = is_done and task.is_successful(env) == 1
+        #     if response.done:
+        #         is_done = True
+        #         break
+        # agent_successful = is_done and task.is_successful(env) == 1
 
         # 任务跑完后，保存执行历史
         save_task_history(agent, str(row['id']), task.goal, agent_successful)
@@ -1438,18 +1475,7 @@ if __name__ == '__main__':
     #             'number': number
     #         }
     #
-    # if task_value == 'MarkorCreateNoteFromClipboard':
-    #     file_name= extract_from_template(
-    #           "Create a note in Markor named {file_name}. Perform a paste operation in the note and save the note.",
-    #         row['instruction'])
-    #     file_name = list(file_name)[0]
-    #     if file_name is not None :
-    #         print(f"file_name:{file_name}")
-    #         params = {
-    #             'file_name': file_name,
-    #             'file_content':user_data_generation.generate_random_string(10)
-    #         }
-    #
+    
     # if task_value == 'SimpleCalendarAddOneEvent':
     #     year, month, day, hour, title, description, duration = extract_calendar_event_info(row['instruction'])
     #     if year is not None and month is not None and day is not None and hour is not None and title is not None and description is not None and duration is not None:
